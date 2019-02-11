@@ -83,6 +83,7 @@ int gbfemtoShowMenu() {
 	int scroll=0;
 	int doRefresh=1;
 	int powerReleased=0;
+	int oldArrowsTick=-1;
 	uint32_t *overlay=vidGetOverlayBuf();
 	kchal_sound_mute(1);
 	while(1) {
@@ -105,7 +106,7 @@ int gbfemtoShowMenu() {
 		if ((newIo&KC_BTN_LEFT) || (newIo&KC_BTN_RIGHT)) {
 			int v=128;
 			if (menuItem==SCN_VOLUME) v=kchal_get_volume();
-			if (menuItem==SCN_BRIGHT) v=kchal_get_contrast();
+			if (menuItem==SCN_BRIGHT) v=kchal_get_brightness();
 			if (newIo&PAD_LEFT) v-=2;
 			if (newIo&PAD_RIGHT) v+=2;
 			if (v<0) v=0;
@@ -115,7 +116,7 @@ int gbfemtoShowMenu() {
 				doRefresh=1;
 			}
 			if (menuItem==SCN_BRIGHT) {
-				kchal_set_contrast(v);
+				kchal_set_brightness(v);
 				doRefresh=1;
 			}
 		}
@@ -159,15 +160,25 @@ int gbfemtoShowMenu() {
 		if (scroll) {
 			doRefresh=1;
 			renderGfx(overlay, 0, 16+scroll+((scroll>0)?-64:64), 0,32*menuItem,80,32);
+			oldArrowsTick=-1; //to force arrow redraw
 		} else {
 			renderGfx(overlay, 0, 16, 0,32*menuItem,80,32);
+			//Render arrows
+			int t=xTaskGetTickCount()/(400/portTICK_PERIOD_MS);
+			t=(t&1);
+			if (t!=oldArrowsTick) {
+				doRefresh=1;
+				renderGfx(overlay, 36, 0, t?0:8, 308, 8, 8);
+				renderGfx(overlay, 36, 56, t?16:24, 308, 8, 8);
+				oldArrowsTick=t;
+			}
 		}
 		
 		//Handle volume/brightness bars
 		if (scroll==0 && (menuItem==SCN_VOLUME || menuItem==SCN_BRIGHT)) {
 			int v=0;
 			if (menuItem==SCN_VOLUME) v=kchal_get_volume();
-			if (menuItem==SCN_BRIGHT) v=kchal_get_contrast();
+			if (menuItem==SCN_BRIGHT) v=kchal_get_brightness();
 			if (v<0) v=0;
 			if (v>255) v=255;
 			renderGfx(overlay, 14, 25+16, 14, 193, (v*60)/256, 4);

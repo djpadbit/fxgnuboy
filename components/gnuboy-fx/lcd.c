@@ -221,15 +221,53 @@ int getAvgPix(uint16_t* bufs, int pitch, int x, int y) {
 
 //Averages four pixels into one, but does subpixel rendering to give a slightly higher
 //X resolution at the cost of color fringing.
+//Bitmasks:
+//RRRR.RGGG.GGGB.BBBB
+//1111.0111.1101.1110 = F7DE
+//0000.1000.0010.0001 = 0821
+//1111.1000.0000.0000 = F800
+//0000.0111.1110.0000 = 07E0
+//0000.0000.0001.1111 = 001F
+//so (RGB565val&0xF7DE)>>1 halves the R, G, B color components.
 int getAvgPixSubpixrendering(uint16_t* bufs, int pitch, int x, int y) {
-	int c1, c2, col;
+	uint32_t *pixduo=(uint32_t*)bufs;
 	if (x<0 || x>=160) return 0;
-	c1=(bufs[x+(y*(pitch>>1))]&0xF7DE)>>1;
-	c1+=(bufs[x+((y+1)*(pitch>>1))]&0xF7DE)>>1;
-	c2=(bufs[(x+1)+(y*(pitch>>1))]&0xF7DE)>>1;
-	c2+=(bufs[(x+1)+((y+1)*(pitch>>1))]&0xF7DE)>>1;
-	col=(c1&0xF800)+((c1&0x7C0)>>1)+((c2&0x7C0)>>1)+(c2&0x1F);
-	return col;
+	//Grab top and bottom two pixels.
+	uint32_t c1=pixduo[(x/2)+(y*(pitch>>2))];
+	uint32_t c2=pixduo[(x/2)+((y+1)*(pitch>>2))];
+	//Average the two.
+	uint32_t c=((c1&0xF7DEF7DE)+(c2&0xF7DEF7DE))>>1;
+	//The averaging action essentially killed the least significant bit of all colors; if
+	//both were one the resulting color should be one more. Compensate for that here.
+	c+=(c1&c1)&0x08210821;
+
+	//Take the various components from the pixels and return the composite.
+	uint32_t red_comp=c&0xF800;
+	uint32_t green_comp=c&0x07E0;
+	green_comp+=(c>>16)&0x07E0;
+	green_comp=(green_comp/2)&0x7E0;
+	uint32_t blue_comp=(c>>16)&0x001F;
+	return red_comp+green_comp+blue_comp;
+}
+
+//Averages 6 pixels into one (area of w=2, h=3), but does subpixel rendering to give a slightly higher
+//X resolution at the cost of color fringing. This is slightly more elaborate as we cannot just use additions,
+//shifts and bitmasks.
+#define RED(i) (((i)>>11) & 0x1F)
+#define GREEN(i) (((i)>>5) & 0x3F)
+#define BLUE(i) (((i)>>0) & 0x1F)
+int getAvgPixSubpixrenderingThreeLines(uint16_t* bufs, int pitch, int x, int y) {
+	int r=0, g=0, b=0;
+	for (int line=0; line<3; line++) {
+		r+=RED(bufs[x+((y+line)*(pitch>>1))]);
+		g+=GREEN(bufs[x+((y+line)*(pitch>>1))]);
+		g+=GREEN(bufs[x+1+((y+line)*(pitch>>1))]);
+		b+=BLUE(bufs[x+1+((y+line)*(pitch>>1))]);
+	}
+	r=r/3;
+	g=g/6;
+	b=b/3;
+	return (r<<11)+(g<<5)+(b);
 }
 
 
@@ -267,26 +305,31 @@ void gnuboy_esp32_videohandler() {
 	printf("Video thread running\n");
 	memset(oledfb, 0, sizeof(oledfb));
 	while(!doShutdown) {
+		int ry; //Y on screen
 		//if (toRender==NULL) 
 		xSemaphoreTake(renderSem, portMAX_DELAY);
 		rendering=toRender;
 		ovl=(uint32_t*)overlay;
 		oledfbptr=oledfb;
-		int hc=0;
+		ry=0;
 		for (y=0; y<64; y++) {
-			if (((y+1)&14)==0) hc++;
+			int doThreeLines=((y%4)==0);
 			for (x=0; x<80; x++) {
-//				c=getAvgPix((uint16_t*)rendering, 160*2, (x*2), (y*2)+hc+2);
-				c=getAvgPixSubpixrendering((uint16_t*)rendering, 160*2, (x*2), (y*2)+hc+2);
+				if (!doThreeLines) {
+					c=getAvgPixSubpixrendering((uint16_t*)rendering, 160*2, (x*2), ry);
+				} else {
+					c=getAvgPixSubpixrenderingThreeLines((uint16_t*)rendering, 160*2, (x*2), ry);
+				}
 				if (ovl) c=addOverlayPixel(c, *ovl++);
 				*oledfbptr++=(c>>8)+((c&0xff)<<8);
 			}
+			ry+=2;
+			if (doThreeLines) ry++;
 		}
 		kchal_send_fb(oledfb);
 	}
 	vTaskDelete(NULL);*/
 }
-
 
 
 

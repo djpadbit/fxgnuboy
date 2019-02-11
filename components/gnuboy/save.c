@@ -191,6 +191,14 @@ void loadstate(int f)
 	
 	//fseek(f, sramblock<<12, SEEK_SET);
 	//fread(ram.sbank, 4096, srl, f);
+	/*for (int i=0; i<srl; i++) {
+		select_rambank(i/2);
+		byte *p=ram.sbank;
+		if (i&1) p+=4096;
+		r=appfsRead(f, (sramblock+i)<<12, p, 4096);
+		printf("save: load sram @%x blk %x\n", (sramblock+i)<<12, i);
+		if (r!=ESP_OK) die("reading sramblock");
+	}*/
 }
 
 void savestate(int f)
@@ -256,6 +264,15 @@ void savestate(int f)
 	//fwrite(lcd.vbank, 4096, vrl, f);
 	
 	//fseek(f, sramblock<<12, SEEK_SET);
+	//fwrite(ram.sbank, 4096, srl, f);
+	/*for (i=0; i<srl; i++) {
+		select_rambank(i/2);
+		byte *p=ram.sbank;
+		if (i&1) p+=4096;
+		r=appfsWrite(f, (sramblock+i)<<12, p, 4096*srl);
+		printf("save: sram @%x blk %x\n", (sramblock+i)<<12, i);
+		if (r!=ESP_OK) die("writing sramblock");
+	}*/
 }
 
 

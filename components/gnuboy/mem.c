@@ -1,6 +1,5 @@
-
-
 #include <stdlib.h>
+#include <string.h>
 
 #include "defs.h"
 #include "hw.h"
@@ -19,6 +18,13 @@ struct ram __attribute__((section (".magic_sec"))) ram;
 
 // see lcd.c for an explanation of the section mapping
 
+void select_rambank(int i) {
+	if (i == ram.prev_rambank) return; //no need to do anything
+	//Swap out ram bank
+	if (ram.prev_rambank!=-1) memcpy(ram.sbanks[ram.prev_rambank], ram.sbank, 8192);
+	memcpy(ram.sbank, ram.sbanks[i], 8192);
+	ram.prev_rambank = i;
+}
 
 /*
  * In order to make reads and writes efficient, we keep tables
@@ -39,6 +45,7 @@ void mem_updatemap()
 	
 	mbc.rombank &= (mbc.romsize - 1);
 	mbc.rambank &= (mbc.ramsize - 1);
+	select_rambank(mbc.rambank);
 	
 	map = mbc.rmap;
 	map[0x0] = getRomBank(0);
@@ -65,8 +72,8 @@ void mem_updatemap()
 	}
 	if (mbc.enableram && !(rtc.sel&8))
 	{
-		map[0xA] = ram.sbank[mbc.rambank] - 0xA000;
-		map[0xB] = ram.sbank[mbc.rambank] - 0xA000;
+		map[0xA] = ram.sbank - 0xA000;
+		map[0xB] = ram.sbank - 0xA000;
 	}
 	else map[0xA] = map[0xB] = NULL;
 	map[0xC] = ram.ibank[0] - 0xC000;
@@ -81,8 +88,8 @@ void mem_updatemap()
 	map[0x8] = map[0x9] = NULL;
 	if (mbc.enableram && !(rtc.sel&8))
 	{
-		map[0xA] = ram.sbank[mbc.rambank] - 0xA000;
-		map[0xB] = ram.sbank[mbc.rambank] - 0xA000;
+		map[0xA] = ram.sbank - 0xA000;
+		map[0xB] = ram.sbank - 0xA000;
 	}
 	else map[0xA] = map[0xB] = NULL;
 	map[0xC] = ram.ibank[0] - 0xC000;
@@ -481,7 +488,7 @@ void mem_write(int a, byte b)
 			rtc_write(b);
 			break;
 		}
-		ram.sbank[mbc.rambank][a & 0x1FFF] = b;
+		ram.sbank[a & 0x1FFF] = b;
 		break;
 	case 0xC:
 		if ((a & 0xF000) == 0xC000)
@@ -550,7 +557,7 @@ byte mem_read(int a)
 			return 0xFF;
 		if (rtc.sel&8)
 			return rtc.regs[rtc.sel&7];
-		return ram.sbank[mbc.rambank][a & 0x1FFF];
+		return ram.sbank[a & 0x1FFF];
 	case 0xC:
 		if ((a & 0xF000) == 0xC000)
 			return ram.ibank[0][a & 0x0FFF];

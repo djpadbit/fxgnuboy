@@ -38,6 +38,7 @@ int main()
 	uint8_t *magic = (uint8_t*)0x88040000;
 	memset(magic,0,256*1024);
 	gnuboymain("sml.gb",0);
+	loader_unload();
 	return 0;
 }
 
