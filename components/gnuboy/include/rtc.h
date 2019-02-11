@@ -23,8 +23,8 @@ void rtc_write(byte b);
 void rtc_tick();
 
 #include <stdio.h>
-void rtc_save_internal(FILE *f);
-void rtc_load_internal(FILE *f);
+void rtc_save_internal(int f);
+void rtc_load_internal(int f);
 
 #endif
 

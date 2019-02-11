@@ -6,10 +6,9 @@
 #include "defs.h"
 #include "mem.h"
 #include <stdlib.h>
-#include <assert.h>
 
 #include <stdio.h>
-#include "rom/ets_sys.h"
+//#include "rom/ets_sys.h"
 
 static byte readb(int a)
 {

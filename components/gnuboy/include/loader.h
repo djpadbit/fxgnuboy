@@ -25,7 +25,6 @@ int loader_init(char *s);
 void state_save(int n);
 void state_load(int n);
 void rom_unload();
-void loader_unload();
 
 #endif
 

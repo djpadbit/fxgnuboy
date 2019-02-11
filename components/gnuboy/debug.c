@@ -11,7 +11,7 @@
 
 #include "cpuregs.h"
 
-
+/*
 static const char *mnemonic_table[256] =
 {
 	"NOP",
@@ -553,7 +553,7 @@ static const byte operand_count[256] =
 };
 
 
-/* replace with a real interactive debugger eventually... */
+/* replace with a real interactive debugger eventually... 
 
 int debug_trace = 0;
 
@@ -564,7 +564,7 @@ rcvar_t debug_exports[] =
 	RCV_END
 };
 */
-
+/*
 void debug_disassemble(addr a, int c)
 {
 	static int i, j, k;
@@ -662,29 +662,4 @@ void debug_disassemble(addr a, int c)
 		c--;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/

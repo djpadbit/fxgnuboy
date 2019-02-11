@@ -11,14 +11,14 @@
 #include "mem.h"
 #include "sound.h"
 
-#include "appfs.h"
-#include <malloc.h>
+//#include "appfs.h"
+//#include <malloc.h>
 #include "rombank.h"
 
 #ifdef IS_LITTLE_ENDIAN
 #define LIL(x) (x)
 #else
-#error "Big-endian is not supported!"
+//#error "Big-endian is not supported!"
 #define LIL(x) ((x<<24)|((x&0xff00)<<8)|((x>>8)&0xff00)|(x>>24))
 #endif
 
@@ -126,9 +126,8 @@ const struct svar svars[] =
 };
 
 
-void loadstate(appfs_handle_t f)
+void loadstate(int f)
 {
-	esp_err_t r;
 	int i, j;
 	byte *buf=malloc(4096);
 	un32 (*header)[2] = (un32 (*)[2])buf;
@@ -141,9 +140,6 @@ void loadstate(appfs_handle_t f)
 
 	//fseek(f, 0, SEEK_SET);
 	//fread(buf, 4096, 1, f);
-	r=appfsRead(f, 0, buf, 4096);
-	printf("save: load header @%x len %x\n", 0, 4096);
-	if (r!=ESP_OK) die("reading header");
 	
 	for (j = 0; header[j][0]; j++)
 	{
@@ -169,8 +165,8 @@ void loadstate(appfs_handle_t f)
 		}
 	}
 
-	printf("Save ver: %x\n", ver);
-	printf("irl %d vrl %d srl %d\n", irl, vrl, srl);
+	//printf("Save ver: %x\n", ver);
+	//printf("irl %d vrl %d srl %d\n", irl, vrl, srl);
 	if (ver!=0x106) {
 		free(buf);
 		return;
@@ -189,32 +185,17 @@ void loadstate(appfs_handle_t f)
 
 	//fseek(f, iramblock<<12, SEEK_SET);
 	//fread(ram.ibank, 4096, irl, f);
-	r=appfsRead(f, iramblock<<12, ram.ibank, 4096*irl);
-	printf("save: load iram @%x len %x\n", iramblock<<12, 4096*irl);
-	if (r!=ESP_OK) die("reading iramblock");
 	
 	//fseek(f, vramblock<<12, SEEK_SET);
 	//fread(lcd.vbank, 4096, vrl, f);
-	r=appfsRead(f, vramblock<<12, lcd.vbank, 4096*vrl);
-	printf("save: load vram @%x len %x\n", vramblock<<12, 4096*vrl);
-	if (r!=ESP_OK) die("reading vramblock");
 	
 	//fseek(f, sramblock<<12, SEEK_SET);
 	//fread(ram.sbank, 4096, srl, f);
-	for (int i=0; i<srl; i++) {
-		select_rambank(i/2);
-		byte *p=ram.sbank;
-		if (i&1) p+=4096;
-		r=appfsRead(f, (sramblock+i)<<12, p, 4096);
-		printf("save: load sram @%x blk %x\n", (sramblock+i)<<12, i);
-		if (r!=ESP_OK) die("reading sramblock");
-	}
 }
 
-void savestate(appfs_handle_t f)
+void savestate(int f)
 {
 	int i;
-	esp_err_t r;
 	byte *buf=malloc(4096);
 	un32 (*header)[2] = (un32 (*)[2])buf;
 	un32 d = 0;
@@ -258,40 +239,23 @@ void savestate(appfs_handle_t f)
 	memcpy(buf+oamofs, lcd.oam.mem, sizeof lcd.oam);
 	memcpy(buf+wavofs, snd.wave, sizeof snd.wave);
 
-	printf("irl %d vrl %d srl %d\n", irl, vrl, srl);
+	//printf("irl %d vrl %d srl %d\n", irl, vrl, srl);
 
-	if (appfsErase(f, 0, 1<<16)!=ESP_OK) printf("ERASE FAIL!\n");
-	printf("Erasing %d bytes.\n", (sramblock<<12)+4096*srl);
+	/*if (appfsErase(f, 0, 1<<16)!=ESP_OK) printf("ERASE FAIL!\n");
+	printf("Erasing %d bytes.\n", (sramblock<<12)+4096*srl);*/
 
 	//fseek(f, 0, SEEK_SET);
 	//fwrite(buf, 4096, 1, f);
-	r=appfsWrite(f, 0, buf, 4096);
-	printf("save: write header @%x len %x\n", 0, 4096);
 
 	free(buf);
 	
 	//fseek(f, iramblock<<12, SEEK_SET);
 	//fwrite(ram.ibank, 4096, irl, f);
-	r=appfsWrite(f, iramblock<<12, ram.ibank, 4096*irl);
-	printf("save: load iram @%x len %x\n", iramblock<<12, 4096*irl);
-	if (r!=ESP_OK) die("writing viramblock");
 	
 	//fseek(f, vramblock<<12, SEEK_SET);
 	//fwrite(lcd.vbank, 4096, vrl, f);
-	r=appfsWrite(f, vramblock<<12, lcd.vbank, 4096*vrl);
-	printf("save: load vram @%x len %x\n", vramblock<<12, 4096*vrl);
-	if (r!=ESP_OK) die("writing vramblock");
 	
 	//fseek(f, sramblock<<12, SEEK_SET);
-	//fwrite(ram.sbank, 4096, srl, f);
-	for (i=0; i<srl; i++) {
-		select_rambank(i/2);
-		byte *p=ram.sbank;
-		if (i&1) p+=4096;
-		r=appfsWrite(f, (sramblock+i)<<12, p, 4096*srl);
-		printf("save: sram @%x blk %x\n", (sramblock+i)<<12, i);
-		if (r!=ESP_OK) die("writing sramblock");
-	}
 }
 
 

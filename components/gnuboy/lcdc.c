@@ -142,13 +142,13 @@ void lcdc_trans()
 			stat_trigger();
 			break;
 		case 2:
-			lcd_refreshline_start();
-//			lcd_refreshline();
+//			lcd_refreshline_start();
+			lcd_refreshline();
 			stat_change(3);
 			C += 86;
 			break;
 		case 3:
-			lcd_refreshline_end();
+//			lcd_refreshline_end();
 			stat_change(0);
 			if (hw.hdma & 0x80)
 				hw_hdma();

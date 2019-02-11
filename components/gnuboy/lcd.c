@@ -12,11 +12,31 @@
 #include "lcd.h"
 #include "fb.h"
 
-#include "esp_attr.h"
+//#include "esp_attr.h"
 
-struct lcd lcd;
+// struct mem = 33032
+// struct lcd = 16768
+// struct scan = 1840
+// patcahceentry = 66
+// *patcacheentry = 4
+// rombanks = 98304
+// so 16768+1840+33032+98304=149944 mem + lcd + scan
+// 4*4096=16384 patcache ptrs
+// 16384+149944=166328 total static size
+// 262144-166328=95816 remaining size in 256kb buffer
+// so max patpix_no would be 95816/66=1451
 
-struct scan scan;
+// Not really
+// So the result will be that
+// mem -> 0x88040000
+// lcd -> 0x88048108
+// scan -> 0x8804c288
+// patcacheptr -> 0x8804c9b8
+// patcahe -> 0x880509b8
+
+struct lcd __attribute__((section (".magic_sec"))) lcd;
+
+struct scan __attribute__((section (".magic_sec"))) scan;
 
 #define BG (scan.bg)
 #define WND (scan.wnd)
@@ -51,8 +71,8 @@ typedef struct {
 	byte pix[64];
 } PatcacheEntry;
 
-static PatcacheEntry patcache[CACHED_PATPIX_NO];
-static IRAM_ATTR PatcacheEntry* patcacheptr[4096];
+static PatcacheEntry __attribute__((section (".magic_sec"))) patcache[CACHED_PATPIX_NO];
+static PatcacheEntry* __attribute__((section (".magic_sec"))) patcacheptr[4096];
 static int patcachefill;
 
 

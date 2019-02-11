@@ -33,7 +33,7 @@ void kb_close();
 int sys_handle_input();
 
 /* FIXME these have different prototype for obsolete ( == M$ ) platforms */
-#include <sys/time.h>
+//#include <sys/time.h>
 int sys_elapsed(struct timeval *prev);
 void sys_initpath();
 

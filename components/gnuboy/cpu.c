@@ -14,7 +14,7 @@
 #include "debug.h"
 #include <string.h>
 
-#include "esp_attr.h"
+//#include "esp_attr.h"
 
 #ifdef USE_ASM
 #include "asm.h"
@@ -371,9 +371,9 @@ int cpu_idle(int max)
 
 #ifndef ASM_CPU_EMULATE
 
-extern int debug_trace;
+//extern int debug_trace;
 
-int IRAM_ATTR cpu_emulate(int cycles)
+int cpu_emulate(int cycles)
 {
 	int i;
 	byte op, cbop;
@@ -414,7 +414,7 @@ next:
 	}
 	IME = IMA;
 	
-	if (debug_trace) debug_disassemble(PC, 1);
+	//if (debug_trace) debug_disassemble(PC, 1);
 	op = FETCH;
 	clen = cycles_table[op];
 
