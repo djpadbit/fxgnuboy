@@ -2,42 +2,24 @@
 #include <stdio.h>
 #include "fb.h"
 #include "lcd.h"
+#include "fxsys.h"
+#include "hw.h"
 #include <string.h>
 #include <display.h>
 #include <rtc.h>
 #include <timer.h>
+#include <gray.h>
 
-long timertime = 0;
-//static int cbid;
-static timer_t *htimer = NULL;
 
 static uint8_t __attribute__((section (".magic_sec"))) buff[160*144];
 
 struct fb fb;
 
-void mprint();
-
-static void timer_callback()
-{
-	timertime++;
-}
 
 void vid_preinit()
 {
-	//cbid = rtc_cb_add(rtc_freq_256Hz,timer_callback,0);
-	uint32_t delay = clock_setting(1024, clock_Hz);
-	htimer = htimer_setup(timer_user, delay, timer_Po_4, 0);
-	timer_attach(htimer, timer_callback, NULL);
-	timer_start(htimer);
+	timer_setup();
 }
-
-void gnuboy_esp32_videohandler();
-void lineTask();
-
-void videoTask(void *pvparameters) {
-	gnuboy_esp32_videohandler();
-}
-
 
 void vid_init()
 {
@@ -76,12 +58,12 @@ void vid_init()
 	fb.dirty = 0;
 	fb.ptr = (unsigned char*)&buff;
 
-	/*fb.cc[0].r = 3;
-	fb.cc[1].r = 2;
-	fb.cc[2].r = 3;
-	fb.cc[0].l = 11;
-	fb.cc[1].l = 5;
-	fb.cc[2].l = 0;*/
+	fb.cc[0].r = 5;
+	fb.cc[1].r = 5;
+	fb.cc[2].r = 6;
+	fb.cc[0].l = 5;
+	fb.cc[1].l = 2;
+	fb.cc[2].l = 0;
 
 	/*int mask[3];
 	mask[0] = 0xe0;
@@ -96,14 +78,8 @@ void vid_init()
 		fb.cc[i].l = l;
 		fb.cc[i].r = 8-c;
 	}*/
-	fb.cc[0].r = 5;
-	fb.cc[1].r = 5;
-	fb.cc[2].r = 6;
-	fb.cc[0].l = 5;
-	fb.cc[1].l = 2;
-	fb.cc[2].l = 0;
+	
 }
-
 
 void vid_close()
 {
@@ -114,8 +90,8 @@ void vid_close()
 	free(backbuff);
 	vQueueDelete(renderSem);*/
 
-	//rtc_cb_end(cbid);
-	timer_stop(htimer);
+	memset(&buff,0,160*144);
+	timer_cleanup();
 }
 
 void vid_settitle(char *title)
@@ -138,7 +114,8 @@ void vid_begin()
 	//esp_task_wdt_feed();
 }
 // RGB to Y conversion for 8 bit color
-const uint8_t grayscale[256] = {0, 6, 12, 18, 26, 32, 38, 44, 52, 58, 64, 70, 78, 84, 90, 96, 104, 110, 116, 122, 130, 136, 142, 148, 156, 162, 168, 174, 182, 188, 194,
+// Not really needed ? Maybe for GBC games
+/*const uint8_t grayscale[256] = {0, 6, 12, 18, 26, 32, 38, 44, 52, 58, 64, 70, 78, 84, 90, 96, 104, 110, 116, 122, 130, 136, 142, 148, 156, 162, 168, 174, 182, 188, 194,
 								200, 7, 13, 19, 26, 33, 39, 46, 52, 59, 65, 72, 78, 85, 92, 98, 104, 111, 118, 124, 130, 138, 144, 150, 156, 164, 170, 176, 182, 190,
 								196, 202, 208, 15, 21, 27, 33, 41, 47, 53, 59, 67, 73, 79, 85, 93, 99, 105, 112, 119, 125, 131, 138, 145, 151, 158, 164, 171, 177, 184,
 								190, 197, 204, 210, 216, 23, 29, 35, 41, 49, 55, 61, 67, 75, 81, 87, 93, 101, 107, 113, 119, 127, 133, 139, 145, 153, 159, 165, 171, 179,
@@ -147,6 +124,35 @@ const uint8_t grayscale[256] = {0, 6, 12, 18, 26, 32, 38, 44, 52, 58, 64, 70, 78
 								175, 181, 187, 195, 201, 207, 213, 221, 227, 233, 239, 46, 52, 58, 64, 72, 78, 84, 90, 98, 104, 110, 116, 124, 130, 136, 143, 150, 156, 162,
 								169, 176, 182, 189, 195, 202, 208, 215, 221, 228, 235, 241, 247, 54, 60, 66, 72, 80, 86, 92, 98, 106, 112, 118, 124, 132, 138, 144, 150, 158,
 								164, 170, 176, 184, 190, 196, 202, 210, 216, 222, 228, 236, 242, 248, 255};
+
+
+static inline void gbc_render()
+{
+	for (int x=0;x<160;x++) {
+		for (int y=0;y<144;y++) {
+			if (y < 4*8 && x < 6*5) continue;
+			int val = grayscale[buff[(y*160)+x]];
+			if (val >= 192) gpixel(x,y,color_black);
+			else if (val >= 128) gpixel(x,y,color_dark);
+			else if (val >= 64) gpixel(x,y,color_light);
+		}
+
+	}
+}*/
+
+static inline void gb_render()
+{
+	for (int x=0;x<160;x++) {
+		for (int y=0;y<144;y++) {
+			if (y < 4*8 && x < 6*5) continue;
+			int val = (buff[(y*160)+x]>>2)&0x7;
+			//7,6,4,2,0
+			if (val > 6) gpixel(x,y,color_black);
+			else if (val > 4) gpixel(x,y,color_dark);
+			else if (val > 2) gpixel(x,y,color_light);
+		}
+	}
+}
 
 void vid_end()
 {
@@ -160,30 +166,17 @@ void vid_end()
 	}*/
 	static unsigned long framet1,framet2;
 	framet2 = timertime;
-	int fps = 1.0/((framet2-framet1)/1024.0);
-	dclear();
+	int fps = 1.0/((framet2-framet1)/(float)(TIMER_FREQ));
+	gclear();
 	mprint(1,1,"%i",fps);
 	mprint(1,2,"%i",frames);
-	for (int x=0;x<160;x++) {
-		for (int y=0;y<144;y++) {
-			if (y < 2*8 && x < 6*5) continue;
-			if (grayscale[buff[(y*160)+x]]>=128) dpixel(x,y,color_black);
-		}
-
-	}
-	dupdate();
+	mprint(1,3,"m:%i",patcachemiss);
+	mprint(1,4,"h:%i",patcachehit);
+	if (!hw.cgb) gb_render();
+	//else gbc_render();
+	gupdate();
 	framet1 = timertime;
 //	printf("Pcm %d pch %d\n", patcachemiss, patcachehit);
-}
-
-uint32_t *vidGetOverlayBuf() {
-	return (uint32_t*)fb.ptr;
-}
-
-void vidRenderOverlay() {
-	/*overlay=(uint16_t*)fb.ptr;
-	if (fb.ptr == (unsigned char*)frontbuff ) toRender=(uint16_t*)backbuff; else toRender=(uint16_t*)frontbuff;
-	xSemaphoreGive(renderSem);*/
 }
 
 void kb_init()
@@ -203,8 +196,6 @@ void ev_poll()
 	kb_poll();
 }
 
-
-//uint16_t oledfb[80*64];
 
 //Averages four pixels into one
 int getAvgPix(uint16_t* bufs, int pitch, int x, int y) {
@@ -294,43 +285,3 @@ int addOverlayPixel(uint16_t p, uint32_t ov) {
 
 	return ((r>>(3+8))<<11)+((g>>(2+8))<<5)+((b>>(3+8))<<0);
 }
-
-//This thread runs on core 1.
-void gnuboy_esp32_videohandler() {
-	/*int x, y;
-	uint16_t *oledfbptr;
-	uint16_t c;
-	uint32_t *ovl;
-	volatile uint16_t *rendering;
-	printf("Video thread running\n");
-	memset(oledfb, 0, sizeof(oledfb));
-	while(!doShutdown) {
-		int ry; //Y on screen
-		//if (toRender==NULL) 
-		xSemaphoreTake(renderSem, portMAX_DELAY);
-		rendering=toRender;
-		ovl=(uint32_t*)overlay;
-		oledfbptr=oledfb;
-		ry=0;
-		for (y=0; y<64; y++) {
-			int doThreeLines=((y%4)==0);
-			for (x=0; x<80; x++) {
-				if (!doThreeLines) {
-					c=getAvgPixSubpixrendering((uint16_t*)rendering, 160*2, (x*2), ry);
-				} else {
-					c=getAvgPixSubpixrenderingThreeLines((uint16_t*)rendering, 160*2, (x*2), ry);
-				}
-				if (ovl) c=addOverlayPixel(c, *ovl++);
-				*oledfbptr++=(c>>8)+((c&0xff)<<8);
-			}
-			ry+=2;
-			if (doThreeLines) ry++;
-		}
-		kchal_send_fb(oledfb);
-	}
-	vTaskDelete(NULL);*/
-}
-
-
-
-

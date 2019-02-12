@@ -42,6 +42,7 @@ void pcm_mute() {
 
 int pcm_submit()
 {
+	return 1;
 	/*kchal_sound_push(buf, SNDBUFLEN);
 	pcm.pos = 0;
 	return 1;*/

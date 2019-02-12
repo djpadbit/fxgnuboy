@@ -8,6 +8,33 @@
 #include <events.h>
 #include <keyboard.h>
 #include <display.h>
+#include <ctype.h>
+#include <gray.h>
+#include "fxsys.h"
+
+unsigned long timertime = 0;
+//static int cbid;
+static timer_t *htimer = NULL;
+
+static void timer_callback()
+{
+	timertime++;
+}
+
+void timer_setup()
+{
+	//cbid = rtc_cb_add(rtc_freq_256Hz,timer_callback,0);
+	uint32_t delay = clock_setting(TIMER_FREQ, clock_Hz);
+	htimer = htimer_setup(timer_user, delay, timer_Po_4, 0);
+	timer_attach(htimer, timer_callback, NULL);
+	timer_start(htimer);
+}
+
+void timer_cleanup()
+{
+	//rtc_cb_end(cbid);
+	timer_stop(htimer);
+}
 
 void mprint(int x,int y, const char* fmt, ...)
 {
@@ -17,7 +44,77 @@ void mprint(int x,int y, const char* fmt, ...)
 	va_start(args, fmt);
 	vsprintf(k,fmt,args);
 	va_end(args);
-	dtext(x * 6 - 5, y * 8 - 8, k);
+	gtext(x * 6 - 5, y * 8 - 8, k);
+}
+
+void print_waitkey(int x,int y, int cls,const char* p)
+{
+	if (cls) gclear();
+	mprint(x,y,p);
+	gupdate();
+	getkey();
+}
+
+void keyb_input(char* buf,size_t len,const char* ask)
+{
+	int key,ptr;
+	ptr = 0;
+	key = 0;
+	int run = 1;
+	int lower = 1;
+	int shift = 0;
+	int ls = 0;
+	int alpha = 0;
+	int la = 0;
+	memset(buf,0,len);
+	while (run) {
+		gclear();
+		mprint(1,1,ask);
+		mprint(1,2,buf);
+		gline(ptr*6,8,ptr*6,7+7,color_black);
+		if (lower) mprint(1,3,"Lowercase");
+		else mprint(1,3,"Uppercase");
+		mprint(1,4,"Use OPTN to switch");
+		mprint(1,5,alpha == 2 ? "Alpha lock" : alpha == 1 ? "Alpha" : shift ? "Shift" : "");
+		gupdate();
+		key = getkey_opt(getkey_none,0);
+		switch (key) {
+			case KEY_LEFT:
+				if (ptr > 0) ptr--;
+				break;
+			case KEY_RIGHT: 
+				if (buf[ptr] != 0) ptr++;
+				break;
+			case KEY_EXE:
+				if (ptr != 0) run = 0;
+				break;
+			case KEY_DEL: 
+				if (ptr > 0) {buf[ptr--] = 0;buf[ptr] = 0;}
+				break;
+			case KEY_OPTN:
+				lower = !lower;
+				break;
+			case KEY_SHIFT:
+				shift = !shift;
+				break;
+			case KEY_ALPHA:
+				if (shift) alpha = 2;
+				else alpha = !alpha;
+				break;
+			default:
+				if (alpha) key |= MOD_ALPHA;
+				if (shift) key |= MOD_SHIFT;
+				if (key_char(key) != 0 && ptr < len+1) buf[ptr++] = lower ? tolower(key_char(key)) : key_char(key);
+				break;
+		}
+		if (ls) shift = 0;
+		if (la == 1) alpha = 0;
+		ls = shift;
+		la = alpha;
+		
+	}
+	gclear();
+	gupdate();
 }
 
 void *sys_timer()
@@ -56,7 +153,7 @@ int sys_handle_input() {
 	e = pollevent();
 	while(1)
 	{
-		if (e.type == event_none) 
+		if (e.type == event_none)
 			break;
 
 		if (e.type == event_key_press) {
@@ -92,7 +189,7 @@ int sys_handle_input() {
 			}
 		}
 
-		if (e.type == event_key_release) {
+		else if (e.type == event_key_release) {
 			switch (e.key.code) {
 				case KEY_SHIFT:
 					hw.pad^=PAD_A;

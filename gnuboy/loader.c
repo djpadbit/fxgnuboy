@@ -121,7 +121,7 @@ int rom_load()
 	byte c, *data, *header;
 	int len = 0, rlen, i;
 
-	rombankLoad(romfile);
+	if (!rombankLoad(romfile)) return 0;
 	data = getRomBank(0);
 	header = data;
 	

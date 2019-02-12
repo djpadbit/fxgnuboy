@@ -22,8 +22,6 @@ void die(char *fmt, ...)
 	asm("break.n 1");*/
 }
 
-void mprint();
-
 void startEmuHook();
 
 int gnuboymain(char *rom, int loadState)
@@ -35,29 +33,18 @@ int gnuboymain(char *rom, int loadState)
 	sys_sanitize(rom);
 	int r=loader_init(rom);
 	if (!r) {
-		dclear();
-		mprint(1,1,"ROM FAILED");
-		dupdate();
-		getkey();
+		print_waitkey(1,1,1,"ROM FAILED");
 		//printf("Loader could not load ROM %s!\n", rom);
 		ret=EMU_RUN_NEWROM;
 		goto err;
 	}
-	dclear();
-	mprint(1,1,"ROM LOADED");
-	dupdate();
-	getkey();
+	print_waitkey(1,1,1,"ROM LOADED");
 	emu_reset();
 	startEmuHook();
-	mprint(1,2,"HOOK DONE");
-	dupdate();
-	getkey();
+	print_waitkey(1,2,0,"HOOK DONE");
 	if (!loadState) emu_reset();
 	ret=emu_run();
-	dclear();
-	mprint(1,1,"EMU FINISHED");
-	dupdate();
-	getkey();
+	print_waitkey(1,1,1,"EMU FINISHED");
 err:
 	rom_unload();
 	vid_close();

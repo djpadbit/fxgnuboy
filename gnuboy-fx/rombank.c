@@ -99,11 +99,11 @@ uint8_t *getRomBank(int bank) {
 		if (!rombanks_mapped[i]) {
 			op = i;
 			break; // if we find an open slot, break
-		} else { // else just find the least used bank
+		} else { // else keep track of the least used bank
 			if (rombanks_use_ctr[i] < rombanks_use_ctr[op]) op = i;
 		}
 	}
-	if (romfd<0) return (uint8_t*)&rombanks[op];
+	if (romfd<0) return (uint8_t*)&rombanks[op]; // Needs a better thing
 	BFile_Read(romfd,&rombanks[op],16*1024,16*1024*bank);
 	rombanks_mapped[op] = bank;
 	rombanks_use_ctr[op] = 1;
@@ -123,16 +123,16 @@ void file_make_path(uint16_t* dst,char* root,char *fold,char *fn)
 	free(tp);
 }
 
-
-void rombankLoad(char *rom) {
+int rombankLoad(char *rom) {
 	/*romFd=appfsOpen(rom);
 	printf("rombankLoad: Loaded rom %s, fd %d\n", rom, romFd);
 	rombankLoadBootrom();*/
 	uint16_t path[64];
 	file_make_path(path,"fls0","",rom);
 	romfd = BFile_Open(path,BFile_ReadOnly);
-	if (romfd<0) return;
+	if (romfd<0) return 0;
 	BFile_Read(romfd,&rombank0,16*1024,0);
+	return 1;
 }
 
 void rombankUnload() {
@@ -145,7 +145,14 @@ void rombankUnload() {
 	appfsClose(romFd);
 	romBankUnloadBootrom();*/
 	if (romfd<0) return;
+	for (int i=0;i<NO_ROMBANKS;i++) {
+		if (rombanks_mapped[i]) {
+			memset(&rombanks[i],0,16*1024);
+			rombanks_mapped[i] = 0;
+		}
+	}
 	BFile_Close(romfd);
+	romfd = -1;
 }
 
 uint8_t bootromLoaded=0; //for save state

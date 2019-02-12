@@ -10,7 +10,7 @@ void romBankUnloadBootrom();
 void rombankLoadBootrom();
 void rombankStateLoaded();
 
-void rombankLoad(char *rom);
+int rombankLoad(char *rom);
 void rombankUnload();
 
 

@@ -19,20 +19,14 @@
 // struct scan = 1840
 // patcahceentry = 66
 // *patcacheentry = 4
-// rombanks = 98304
+// rombanks = NO_ROMBANKS*16*1024
+
+// NOT UP TO DATE BUT YOU GET THE IDEA
 // so 16768+1840+33032+98304=149944 mem + lcd + scan
 // 4*4096=16384 patcache ptrs
 // 16384+149944=166328 total static size
 // 262144-166328=95816 remaining size in 256kb buffer
 // so max patpix_no would be 95816/66=1451
-
-// Not really
-// So the result will be that
-// mem -> 0x88040000
-// lcd -> 0x88048108
-// scan -> 0x8804c288
-// patcacheptr -> 0x8804c9b8
-// patcahe -> 0x880509b8
 
 struct lcd __attribute__((section (".magic_sec"))) lcd;
 
@@ -81,7 +75,9 @@ static int rgb332;
 static int sprsort = 1;
 static int sprdebug;
 
-#define DEF_PAL { 0x98d0e0, 0x68a0b0, 0x60707C, 0x2C3C3C }
+//#define DEF_PAL { 0x98d0e0, 0x68a0b0, 0x60707C, 0x2C3C3C }
+//Green only pallette, 255,192,128,64
+#define DEF_PAL { 0xf800, 0xc000, 0x8000, 0x4000 }
 
 static int dmg_pal[4][4] = { DEF_PAL, DEF_PAL, DEF_PAL, DEF_PAL };
 

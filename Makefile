@@ -23,7 +23,6 @@ CFLAGS += -g
 
 fxgnuboy: $(OBJS) $(FX_OBJS)
 	$(CC) $(OBJS) $(FX_OBJS) $(LDFLAGS) -o fxgnuboy.elf
-	#sh3eb-elf-objcopy -R .comment -R .bss -R .mem_sec -R .lcd_sec -R .scan_sec -R .patpix_ptrs_sec -R .patpix_sec -O binary fxgnuboy.elf fxgnuboy.bin
 	sh3eb-elf-objcopy -R .comment -R .bss -R .magic_sec -O binary fxgnuboy.elf fxgnuboy.bin
 	g1a-wrapper fxgnuboy.bin -o fxgnuboy.g1a -i MainIcon.bmp
 

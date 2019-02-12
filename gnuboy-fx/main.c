@@ -12,11 +12,14 @@
 #include "rombank.h"
 #include "save.h"
 #include "hw.h"
+#include "fxsys.h"
+#include "loader.h"
 #include <string.h>
 #include <display.h>
 #include <keyboard.h>
+#include <gray.h>
 
-int frames;
+unsigned int frames;
 
 int main()
 {
@@ -35,9 +38,16 @@ int main()
 	xTaskCreatePinnedToCore(&lineTask, "lineTask", 1024, NULL, 6, NULL, 1);
 	xTaskCreatePinnedToCore(&gnuboyTask, "gnuboyTask", 1024*6, NULL, 5, NULL, 0);
 	xTaskCreatePinnedToCore(&monTask, "monTask", 1024*2, NULL, 7, NULL, 0);*/
+	//Clear the magic buffer area, just in case
 	uint8_t *magic = (uint8_t*)0x88040000;
 	memset(magic,0,256*1024);
-	gnuboymain("sml.gb",0);
+
+	gray_start(); // Start gray engine at the very start of the addin beacuse everything uses gupdate,gclear,etc..
+
+	char romn[40];
+	keyb_input((char*)&romn,40,"Enter rom file name");
+
+	gnuboymain((char*)&romn,0);
 	loader_unload();
 	return 0;
 }
