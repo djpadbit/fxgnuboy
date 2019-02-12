@@ -77,7 +77,8 @@ static int sprdebug;
 
 //#define DEF_PAL { 0x98d0e0, 0x68a0b0, 0x60707C, 0x2C3C3C }
 //Green only pallette, 255,192,128,64
-#define DEF_PAL { 0xf800, 0xc000, 0x8000, 0x4000 }
+//#define DEF_PAL { 0xf800, 0xc000, 0x8000, 0x4000 }
+#define DEF_PAL { 0x4000, 0x8000, 0xc000, 0xf800 }
 
 static int dmg_pal[4][4] = { DEF_PAL, DEF_PAL, DEF_PAL, DEF_PAL };
 

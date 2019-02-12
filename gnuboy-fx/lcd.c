@@ -15,6 +15,23 @@ static uint8_t __attribute__((section (".magic_sec"))) buff[160*144];
 
 struct fb fb;
 
+static int xoff,yoff;
+static unsigned char scalearrx[160];
+static unsigned char scalearry[144];
+
+void lcd_gen_scale_arr(unsigned char w,unsigned char h)
+{
+	memset(scalearrx,128,160);
+	memset(scalearry,128,144);
+	float x_ratio = 160.0/(float)w;
+	float y_ratio = 144.0/(float)h;
+	for (int i=0;i<h;i++) {
+		for (int j=0;j<w;j++) {
+			scalearrx[(int)(j*x_ratio)] = j;
+			scalearry[(int)(i*y_ratio)] = i;
+		}
+	}
+}
 
 void vid_preinit()
 {
@@ -65,6 +82,10 @@ void vid_init()
 	fb.cc[1].l = 2;
 	fb.cc[2].l = 0;
 
+	xoff = 29;
+	yoff = 0;
+	lcd_gen_scale_arr(71,64);
+
 	/*int mask[3];
 	mask[0] = 0xe0;
 	mask[1] = 0x1c;
@@ -113,6 +134,7 @@ void vid_begin()
 	patcachehit=0;
 	//esp_task_wdt_feed();
 }
+
 // RGB to Y conversion for 8 bit color
 // Not really needed ? Maybe for GBC games
 /*const uint8_t grayscale[256] = {0, 6, 12, 18, 26, 32, 38, 44, 52, 58, 64, 70, 78, 84, 90, 96, 104, 110, 116, 122, 130, 136, 142, 148, 156, 162, 168, 174, 182, 188, 194,
@@ -144,12 +166,16 @@ static inline void gb_render()
 {
 	for (int x=0;x<160;x++) {
 		for (int y=0;y<144;y++) {
-			if (y < 4*8 && x < 6*5) continue;
+			int sax = scalearrx[x];
+			int say = scalearry[y];
+			if (sax == 128 || say == 128) continue;
 			int val = (buff[(y*160)+x]>>2)&0x7;
+			int xo = sax + xoff;
+			int yo = say + yoff;
 			//7,6,4,2,0
-			if (val > 6) gpixel(x,y,color_black);
-			else if (val > 4) gpixel(x,y,color_dark);
-			else if (val > 2) gpixel(x,y,color_light);
+			if (val > 6) gpixel(xo,yo,color_black);
+			else if (val > 4) gpixel(xo,yo,color_dark);
+			else if (val > 2) gpixel(xo,yo,color_light);
 		}
 	}
 }
