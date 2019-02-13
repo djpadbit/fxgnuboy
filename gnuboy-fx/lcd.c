@@ -170,7 +170,7 @@ void vid_begin()
 
 // RGB to Y conversion for 8 bit color
 // Not really needed ? Maybe for GBC games
-/*const uint8_t grayscale[256] = {0, 6, 12, 18, 26, 32, 38, 44, 52, 58, 64, 70, 78, 84, 90, 96, 104, 110, 116, 122, 130, 136, 142, 148, 156, 162, 168, 174, 182, 188, 194,
+const uint8_t grayscale[256] = {0, 6, 12, 18, 26, 32, 38, 44, 52, 58, 64, 70, 78, 84, 90, 96, 104, 110, 116, 122, 130, 136, 142, 148, 156, 162, 168, 174, 182, 188, 194,
 								200, 7, 13, 19, 26, 33, 39, 46, 52, 59, 65, 72, 78, 85, 92, 98, 104, 111, 118, 124, 130, 138, 144, 150, 156, 164, 170, 176, 182, 190,
 								196, 202, 208, 15, 21, 27, 33, 41, 47, 53, 59, 67, 73, 79, 85, 93, 99, 105, 112, 119, 125, 131, 138, 145, 151, 158, 164, 171, 177, 184,
 								190, 197, 204, 210, 216, 23, 29, 35, 41, 49, 55, 61, 67, 75, 81, 87, 93, 101, 107, 113, 119, 127, 133, 139, 145, 153, 159, 165, 171, 179,
@@ -181,19 +181,40 @@ void vid_begin()
 								164, 170, 176, 184, 190, 196, 202, 210, 216, 222, 228, 236, 242, 248, 255};
 
 
-static inline void gbc_render()
+static inline void gbc_grender()
 {
 	for (int x=0;x<160;x++) {
 		for (int y=0;y<144;y++) {
-			if (y < 4*8 && x < 6*5) continue;
+			int sax = scalearrx[x];
+			int say = scalearry[y];
+			if (sax == 255 || say == 255) continue;
 			int val = grayscale[buff[(y*160)+x]];
-			if (val >= 192) gpixel(x,y,color_black);
-			else if (val >= 128) gpixel(x,y,color_dark);
-			else if (val >= 64) gpixel(x,y,color_light);
+			int xo = sax + lcd_xoff;
+			int yo = say + lcd_yoff;
+			if (val >= 192) gpixel(xo,yo,color_black);
+			else if (val >= 128) gpixel(xo,yo,color_dark);
+			else if (val >= 64) gpixel(xo,yo,color_light);
 		}
-
 	}
-}*/
+}
+
+static inline void gbc_mrender()
+{
+	for (int x=0;x<160;x++) {
+		for (int y=0;y<144;y++) {
+			int sax = scalearrx[x];
+			int say = scalearry[y];
+			if (sax == 255 || say == 255) continue;
+			if (grayscale[buff[(y*160)+x]] >= 128) dpixel(sax + lcd_xoff,say + lcd_yoff,color_black);
+		}
+	}
+}
+
+static inline void gbc_render()
+{
+	if (lcd_gray_enabled) gbc_grender();
+	else gbc_mrender();
+}
 
 static inline void gb_grender()
 {
@@ -257,7 +278,7 @@ void vid_end()
 		mprint(1,8,"%i",patcachehit);
 	}
 	if (!hw.cgb) gb_render();
-	//else gbc_render();
+	else gbc_render();
 	mupdate();
 	framet1 = timertime;
 //	printf("Pcm %d pch %d\n", patcachemiss, patcachehit);
