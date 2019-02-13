@@ -19,7 +19,8 @@ struct fb fb;
 int lcd_xoff,lcd_yoff;
 int lcd_scalex,lcd_scaley;
 static int lcd_oscalex,lcd_oscaley;
-uint8_t lcd_show_debug_info,lcd_gray_enabled;
+uint8_t lcd_show_debug_info;
+uint8_t lcd_gray_enabled = 0;
 static unsigned char scalearrx[160];
 static unsigned char scalearry[144];
 
@@ -219,10 +220,8 @@ static inline void gb_mrender()
 			int sax = scalearrx[x];
 			int say = scalearry[y];
 			if (sax == 255 || say == 255) continue;
-			int xo = sax + lcd_xoff;
-			int yo = say + lcd_yoff;
 			//7,6,4,2,0
-			if (((buff[(y*160)+x]>>2)&0x7) > 4) dpixel(xo,yo,color_black);
+			if (((buff[(y*160)+x]>>2)&0x7) > 4) dpixel(sax + lcd_xoff,say + lcd_yoff,color_black);
 		}
 	}
 }
