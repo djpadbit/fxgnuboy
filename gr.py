@@ -7,10 +7,10 @@ for i in range(256):
 	r = ((i&0xe0)>>5)/7.0
 	g = ((i&0x1c)>>2)/7.0
 	b = (i&0x3)/3.0
-	lis.append(int(rgb2y(r,g,b)*255))
+	lis.append(255-int(rgb2y(r,g,b)*255))
 
 at =0
-string = "const uint8_t image["+str(len(lis))+"] = {"
+string = "const uint8_t grayscale["+str(len(lis))+"] = {"
 for i in range(len(lis)):
 	string += str(lis[i])
 	if i != len(lis)-1 and at != 30:
