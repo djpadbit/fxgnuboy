@@ -6,6 +6,7 @@
 #include "hw.h"
 #include <string.h>
 #include <display.h>
+#include <keyboard.h>
 #include <rtc.h>
 #include <timer.h>
 #include <gray.h>
@@ -15,14 +16,17 @@ static uint8_t __attribute__((section (".magic_sec"))) buff[160*144];
 
 struct fb fb;
 
-static int xoff,yoff;
+int lcd_xoff,lcd_yoff;
+int lcd_scalex,lcd_scaley;
+static int lcd_oscalex,lcd_oscaley;
+uint8_t lcd_show_debug_info,lcd_gray_enabled;
 static unsigned char scalearrx[160];
 static unsigned char scalearry[144];
 
 void lcd_gen_scale_arr(unsigned char w,unsigned char h)
 {
-	memset(scalearrx,128,160);
-	memset(scalearry,128,144);
+	memset(scalearrx,255,160);
+	memset(scalearry,255,144);
 	float x_ratio = 160.0/(float)w;
 	float y_ratio = 144.0/(float)h;
 	for (int i=0;i<h;i++) {
@@ -31,6 +35,27 @@ void lcd_gen_scale_arr(unsigned char w,unsigned char h)
 			scalearry[(int)(i*y_ratio)] = i;
 		}
 	}
+}
+
+void lcd_update_scaling()
+{
+	if (lcd_scalex == lcd_oscalex && lcd_scaley == lcd_oscaley) return;
+	if (lcd_scalex < 0) lcd_scalex = 0;
+	else if (lcd_scalex > 160) lcd_scalex = 160;
+	if (lcd_scaley < 0) lcd_scaley = 0;
+	else if (lcd_scaley > 144) lcd_scaley = 144;
+	if (lcd_scalex == lcd_oscalex && lcd_scaley == lcd_oscaley) return;
+	lcd_oscalex = lcd_scalex;
+	lcd_oscaley = lcd_scaley;
+	lcd_gen_scale_arr(lcd_scalex,lcd_scaley);
+}
+
+void lcd_update_gray(uint8_t state)
+{
+	if (state == lcd_gray_enabled) return;
+	if (!state) gray_stop();
+	else gray_start();
+	lcd_gray_enabled = state;
 }
 
 void vid_preinit()
@@ -75,6 +100,8 @@ void vid_init()
 	fb.dirty = 0;
 	fb.ptr = (unsigned char*)&buff;
 
+	// RRRGGGBB
+	// Use only 8 bits to save space and the calculator is monochrome anyways
 	fb.cc[0].r = 5;
 	fb.cc[1].r = 5;
 	fb.cc[2].r = 6;
@@ -82,9 +109,14 @@ void vid_init()
 	fb.cc[1].l = 2;
 	fb.cc[2].l = 0;
 
-	xoff = 29;
-	yoff = 0;
-	lcd_gen_scale_arr(71,64);
+	lcd_xoff = 29;
+	lcd_yoff = 0;
+	lcd_scalex = 71;
+	lcd_scaley = 64;
+	lcd_update_scaling();
+
+	lcd_show_debug_info = 1;
+	lcd_update_gray(1);
 
 	/*int mask[3];
 	mask[0] = 0xe0;
@@ -162,22 +194,43 @@ static inline void gbc_render()
 	}
 }*/
 
-static inline void gb_render()
+static inline void gb_grender()
 {
 	for (int x=0;x<160;x++) {
 		for (int y=0;y<144;y++) {
 			int sax = scalearrx[x];
 			int say = scalearry[y];
-			if (sax == 128 || say == 128) continue;
+			if (sax == 255 || say == 255) continue;
 			int val = (buff[(y*160)+x]>>2)&0x7;
-			int xo = sax + xoff;
-			int yo = say + yoff;
+			int xo = sax + lcd_xoff;
+			int yo = say + lcd_yoff;
 			//7,6,4,2,0
 			if (val > 6) gpixel(xo,yo,color_black);
 			else if (val > 4) gpixel(xo,yo,color_dark);
 			else if (val > 2) gpixel(xo,yo,color_light);
 		}
 	}
+}
+
+static inline void gb_mrender()
+{
+	for (int x=0;x<160;x++) {
+		for (int y=0;y<144;y++) {
+			int sax = scalearrx[x];
+			int say = scalearry[y];
+			if (sax == 255 || say == 255) continue;
+			int xo = sax + lcd_xoff;
+			int yo = say + lcd_yoff;
+			//7,6,4,2,0
+			if (((buff[(y*160)+x]>>2)&0x7) > 4) dpixel(xo,yo,color_black);
+		}
+	}
+}
+
+static inline void gb_render()
+{
+	if (lcd_gray_enabled) gb_grender();
+	else gb_mrender();
 }
 
 void vid_end()
@@ -193,14 +246,20 @@ void vid_end()
 	static unsigned long framet1,framet2;
 	framet2 = timertime;
 	int fps = 1.0/((framet2-framet1)/(float)(TIMER_FREQ));
-	gclear();
-	mprint(1,1,"%i",fps);
-	mprint(1,2,"%i",frames);
-	mprint(1,3,"m:%i",patcachemiss);
-	mprint(1,4,"h:%i",patcachehit);
+	mclear();
+	if (lcd_show_debug_info) {
+		mprint(1,1,"%i",fps);
+		mprint(1,2,"%i",frames);
+		mprint(1,3,"%i",lcd_xoff);
+		mprint(1,4,"%i",lcd_yoff);
+		mprint(1,5,"%i",lcd_scalex);
+		mprint(1,6,"%i",lcd_scaley);
+		mprint(1,7,"%i",patcachemiss);
+		mprint(1,8,"%i",patcachehit);
+	}
 	if (!hw.cgb) gb_render();
 	//else gbc_render();
-	gupdate();
+	mupdate();
 	framet1 = timertime;
 //	printf("Pcm %d pch %d\n", patcachemiss, patcachehit);
 }

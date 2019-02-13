@@ -42,8 +42,6 @@ int main()
 	uint8_t *magic = (uint8_t*)0x88040000;
 	memset(magic,0,256*1024);
 
-	gray_start(); // Start gray engine at the very start of the addin beacuse everything uses gupdate,gclear,etc..
-
 	char romn[40];
 	keyb_input((char*)&romn,40,"Enter rom file name");
 
