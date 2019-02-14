@@ -552,11 +552,11 @@ static const byte operand_count[256] =
 	2, 1, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 1, 1, 2, 1
 };
 
-
-/* replace with a real interactive debugger eventually... 
-
+*/
+/* replace with a real interactive debugger eventually... */
+/*
 int debug_trace = 0;
-
+*/
 /*
 rcvar_t debug_exports[] =
 {

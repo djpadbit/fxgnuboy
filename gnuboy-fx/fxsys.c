@@ -12,6 +12,7 @@
 #include <gray.h>
 #include "fxsys.h"
 #include "lcd.h"
+#include "menu.h"
 
 #define NB_FRAMES_HOLD 10
 
@@ -41,106 +42,6 @@ void timer_cleanup()
 {
 	//rtc_cb_end(cbid);
 	timer_stop(htimer);
-}
-
-void mprint(int x,int y, const char* fmt, ...)
-{
-	if(x < 1 || x > 21 || y < 1 || y > 8) return;
-	char k[50];
-	va_list args;
-	va_start(args, fmt);
-	vsprintf(k,fmt,args);
-	va_end(args);
-	if (lcd_gray_enabled) gtext(x * 6 - 5, y * 8 - 8, k);
-	else dtext(x * 6 - 5, y * 8 - 8, k);
-}
-
-void mclear()
-{
-	if (lcd_gray_enabled) gclear();
-	else dclear();
-}
-
-void mupdate()
-{
-	if (lcd_gray_enabled) gupdate();
-	else dupdate();
-}
-
-void mline(int x1, int y1, int x2, int y2, color_t _operator)
-{
-	if (lcd_gray_enabled) gline(x1,y1,x2,y2,_operator);
-	else dline(x1,y1,x2,y2,_operator);
-}
-
-void print_waitkey(int x,int y, int cls,const char* p)
-{
-	if (cls) mclear();
-	mprint(x,y,p);
-	mupdate();
-	getkey();
-}
-
-void keyb_input(char* buf,size_t len,const char* ask)
-{
-	int key,ptr;
-	ptr = 0;
-	key = 0;
-	int run = 1;
-	int lower = 1;
-	int shift = 0;
-	int ls = 0;
-	int alpha = 0;
-	int la = 0;
-	memset(buf,0,len);
-	while (run) {
-		mclear();
-		mprint(1,1,ask);
-		mprint(1,2,buf);
-		mline(ptr*6,8,ptr*6,7+7,color_black);
-		if (lower) mprint(1,3,"Lowercase");
-		else mprint(1,3,"Uppercase");
-		mprint(1,4,"Use OPTN to switch");
-		mprint(1,5,alpha == 2 ? "Alpha lock" : alpha == 1 ? "Alpha" : shift ? "Shift" : "");
-		mupdate();
-		key = getkey_opt(getkey_none,0);
-		switch (key) {
-			case KEY_LEFT:
-				if (ptr > 0) ptr--;
-				break;
-			case KEY_RIGHT: 
-				if (buf[ptr] != 0) ptr++;
-				break;
-			case KEY_EXE:
-				if (ptr != 0) run = 0;
-				break;
-			case KEY_DEL: 
-				if (ptr > 0) {buf[ptr--] = 0;buf[ptr] = 0;}
-				break;
-			case KEY_OPTN:
-				lower = !lower;
-				break;
-			case KEY_SHIFT:
-				shift = !shift;
-				break;
-			case KEY_ALPHA:
-				if (shift) alpha = 2;
-				else alpha = !alpha;
-				break;
-			default:
-				if (alpha) key |= MOD_ALPHA;
-				if (shift) key |= MOD_SHIFT;
-				if (key_char(key) != 0 && ptr < len+1) buf[ptr++] = lower ? tolower(key_char(key)) : key_char(key);
-				break;
-		}
-		if (ls) shift = 0;
-		if (la == 1) alpha = 0;
-		ls = shift;
-		la = alpha;
-		
-	}
-	mclear();
-	mupdate();
 }
 
 void *sys_timer()
@@ -177,6 +78,7 @@ int sys_handle_input() {
 	return EMU_RUN_CONT;*/
 	// Will be kept between function calls
 	static uint8_t keypress[4];
+	int ret;
 	event_t e;
 	e = pollevent();
 	while(1)
@@ -230,7 +132,8 @@ int sys_handle_input() {
 					lcd_show_debug_info = !lcd_show_debug_info;
 					break;
 				case KEY_MENU:
-					//Not implemented yet
+					ret = menu_pause();
+					if (ret!=EMU_RUN_CONT) return ret;
 					break;
 				case KEY_EXIT:
 					return EMU_RUN_EXIT;

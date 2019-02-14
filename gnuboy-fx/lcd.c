@@ -3,6 +3,7 @@
 #include "fb.h"
 #include "lcd.h"
 #include "fxsys.h"
+#include "disp.h"
 #include "hw.h"
 #include <string.h>
 #include <display.h>

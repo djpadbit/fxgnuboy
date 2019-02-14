@@ -1,20 +1,14 @@
-
 #include "defs.h"
 #include "pcm.h"
 #include <string.h>
 #include <stdio.h>
-//#include "freertos/FreeRTOS.h"
-//#include "driver/i2s.h"
-//#include "freertos/task.h"
-//#include <sdkconfig.h>
-//#include "8bkc-hal.h"
 
 struct pcm pcm;
 
 //Keep this preferably very short. No idea why, but >64'ish impacts frame rate.
 #define SNDBUFLEN 8
 
-static uint8_t buf[SNDBUFLEN];
+//static uint8_t buf[SNDBUFLEN];
 
 void pcm_init()
 {

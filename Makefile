@@ -4,7 +4,6 @@ CC = sh3eb-elf-gcc
 CFLAGS = -Wall -Ofast -fstrength-reduce -fthread-jumps -fcse-follow-jumps -fcse-skip-blocks -frerun-cse-after-loop  -fexpensive-optimizations -fforce-addr -fomit-frame-pointer
 CFLAGS += `fxsdk --cflags`
 INCLUDE = -Ignuboy/include -Ignuboy-fx/include
-CFLAGS += $(INCLUDE)
 GNUBOYDIR = gnuboy
 FX_GNUBOYDIR = gnuboy-fx
 SRCFILES = $(wildcard $(GNUBOYDIR)/*.c)
@@ -19,7 +18,7 @@ all: fxgnuboy
 CFLAGS += -g
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS) $(INCLUDE)
+	$(CC) $(INCLUDE) $(CFLAGS) -c -o $@ $<
 
 fxgnuboy: $(OBJS) $(FX_OBJS)
 	$(CC) $(OBJS) $(FX_OBJS) $(LDFLAGS) -o fxgnuboy.elf

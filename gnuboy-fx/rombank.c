@@ -39,7 +39,7 @@ static uint8_t rombanks_mapped[NO_ROMBANKS];
 static unsigned int rombanks_use_ctr[NO_ROMBANKS];
 static uint8_t __attribute__((section (".magic_sec"))) rombank0[16*1024];
 
-static uint8_t *bootrom=NULL;
+//static uint8_t *bootrom=NULL;
 //static uint8_t *rombank0=NULL; //ToDo: Fix this
 
 //Game Boy ROM banks are 16KiB. We map it into the 64K MMU banks of the ESP32.

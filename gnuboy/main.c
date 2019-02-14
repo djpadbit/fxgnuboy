@@ -9,6 +9,7 @@
 #include "sys.h"
 #include "emu.h"
 #include "loader.h"
+#include "disp.h"
 
 #define VERSION "1.0.4"
 
