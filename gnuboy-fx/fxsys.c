@@ -125,7 +125,7 @@ int sys_handle_input() {
 				case KEY_F3:
 					input_mode = 2;
 					break;
-				case KEY_F5:
+				case KEY_F5: // Faster for debug, in futur change in settings 
 					lcd_update_gray(!lcd_gray_enabled);
 					break;
 				case KEY_F6:

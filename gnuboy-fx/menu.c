@@ -1,16 +1,18 @@
 #include "defs.h"
 #include "emu.h"
 #include "disp.h"
+#include "lcd.h"
 #include <keyboard.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-void keyb_input(char* buf,size_t len,const char* ask)
+int keyb_input(char* buf,size_t len,const char* ask)
 {
 	int key,ptr;
 	ptr = 0;
 	key = 0;
+	int ret = 1;
 	int run = 1;
 	int lower = 1;
 	int shift = 0;
@@ -35,6 +37,10 @@ void keyb_input(char* buf,size_t len,const char* ask)
 				break;
 			case KEY_RIGHT: 
 				if (buf[ptr] != 0) ptr++;
+				break;
+			case KEY_EXIT:
+				ret = 0;
+				run = 0;
 				break;
 			case KEY_EXE:
 				if (ptr != 0) run = 0;
@@ -65,18 +71,33 @@ void keyb_input(char* buf,size_t len,const char* ask)
 		
 	}
 	mclear();
-	mupdate();
+	return ret;
 }
 
-int menu_chooser(const char** choices, int nbchoices, const char* title)
+void menu_error(const char* first, const char* second)
 {
 	mclear();
-	int sel=0;
+	if (!second) {
+		mprintp((DWIDTH/2)-(text_length(first)/2), (DHEIGHT/2)-4,first);
+	} else {
+		mprintp((DWIDTH/2)-(text_length(first)/2), ((DHEIGHT/2)-4)-4,first);
+		mprintp((DWIDTH/2)-(text_length(second)/2), ((DHEIGHT/2)-4)+4,second);
+	}
+	mupdate();
+	getkey_opt(getkey_none,0);
+}
+
+int menu_chooser(const char** choices, int nbchoices, const char* title, int start)
+{
+	mclear();
+	int sel=start;
 	int key;
 	while (1) {
 		mprintp((DWIDTH/2)-(text_length(title)/2), 0,title);
+		mrect(0, 0, 128, 7,color_invert);
+		//mline(0, 7, 128, 7, color_black);
 		for (int i=0;i<nbchoices;i++) mprint(1,i+2,choices[i]);
-		mrect(1, (sel+2) * 8 - 8,22 * 6 - 5, ((sel+3) * 8 - 8)-1,color_invert);
+		mrect(0, (sel+2) * 8 - 8, 128, ((sel+3) * 8 - 8)-1,color_invert);
 		mupdate();
 		mclear();
 		key = getkey_opt(getkey_none,0);
@@ -96,25 +117,44 @@ int menu_chooser(const char** choices, int nbchoices, const char* title)
 	}
 }
 
-int menu_pause()
+void menu_config()
 {
-	const char *opts[4] = {"Saves (Not impl.)","Change ROM","Configuration","Quit"};
-	int ret = menu_chooser(opts,4,"Menu");
-	switch (ret) {
-		case 0:
-			return EMU_RUN_CONT;
-		case 1:
-			return EMU_RUN_CONT;
-		case 2:
-			return EMU_RUN_CONT;
-		case 3:
-			return EMU_RUN_EXIT;
-		default:
-			return EMU_RUN_CONT;
+	int ret = 0;
+	while (1) {
+		const char *opts[] = {"<--",lcd_gray_enabled ? "Gray Disable" : "Gray Enable"};
+		ret = menu_chooser(opts,2,"Config",ret);
+		switch (ret) {
+			case 0:
+				return;
+			case 1:
+				lcd_update_gray(!lcd_gray_enabled);
+				break;
+			default:
+				return;
+		}
 	}
 }
 
-void menu_config()
+int menu_pause()
 {
-
+	int ret = 0;
+	while (1) {
+		const char *opts[] = {"Saves (Not impl.)","Reset","Change ROM","Configuration","Quit"};
+		ret = menu_chooser(opts,5,"Menu",ret);
+		switch (ret) {
+			case 0:
+				return EMU_RUN_CONT;
+			case 1:
+				return EMU_RUN_RESET;
+			case 2:
+				return EMU_RUN_NEWROM;
+			case 3:
+				menu_config();
+				break;
+			case 4:
+				return EMU_RUN_EXIT;
+			default:
+				return EMU_RUN_CONT;
+		}
+	}
 }

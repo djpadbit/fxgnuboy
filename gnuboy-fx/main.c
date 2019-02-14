@@ -40,14 +40,18 @@ int main()
 	xTaskCreatePinnedToCore(&gnuboyTask, "gnuboyTask", 1024*6, NULL, 5, NULL, 0);
 	xTaskCreatePinnedToCore(&monTask, "monTask", 1024*2, NULL, 7, NULL, 0);*/
 	//Clear the magic buffer area, just in case
-	uint8_t *magic = (uint8_t*)0x88040000;
-	memset(magic,0,256*1024);
+	memset((uint8_t*)0x88040000,0,256*1024);
 
 	char romn[40];
-	keyb_input((char*)&romn,40,"Enter rom file name");
+	int ret = EMU_RUN_NEWROM;
 
-	gnuboymain((char*)&romn,0);
-	loader_unload();
+	while (ret == EMU_RUN_NEWROM || ret == EMU_RUN_ROMFAIL) {
+		if (ret == EMU_RUN_ROMFAIL) menu_error("Failed to load rom",NULL);
+		if (!keyb_input((char*)&romn,40,"Enter rom file name")) return 1;
+		ret = gnuboymain((char*)&romn,0);
+		loader_unload();
+	}
+
 	return 0;
 }
 

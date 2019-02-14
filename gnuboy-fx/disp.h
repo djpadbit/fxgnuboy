@@ -10,6 +10,5 @@ void mclear();
 void mupdate();
 void mline(int x1, int y1, int x2, int y2, color_t _operator);
 void mrect(int x1, int y1, int x2, int y2, color_t _operator);
-void print_waitkey(int x,int y, int cls,const char* p);
 
 #endif

@@ -2,6 +2,7 @@
 #define __MENU_H_
 
 int menu_pause();
-void keyb_input(char* buf,size_t len,const char* ask);
+int keyb_input(char* buf,size_t len,const char* ask);
+void menu_error(const char* first, const char* second);
 
 #endif

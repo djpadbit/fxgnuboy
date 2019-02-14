@@ -9,7 +9,6 @@
 #include "sys.h"
 #include "emu.h"
 #include "loader.h"
-#include "disp.h"
 
 #define VERSION "1.0.4"
 
@@ -34,18 +33,14 @@ int gnuboymain(char *rom, int loadState)
 	sys_sanitize(rom);
 	int r=loader_init(rom);
 	if (!r) {
-		print_waitkey(1,1,1,"ROM FAILED");
 		//printf("Loader could not load ROM %s!\n", rom);
-		ret=EMU_RUN_NEWROM;
+		ret=EMU_RUN_ROMFAIL;
 		goto err;
 	}
-	print_waitkey(1,1,1,"ROM LOADED");
 	emu_reset();
 	startEmuHook();
-	print_waitkey(1,2,0,"HOOK DONE");
 	if (!loadState) emu_reset();
 	ret=emu_run();
-	print_waitkey(1,1,1,"EMU FINISHED");
 err:
 	rom_unload();
 	vid_close();
