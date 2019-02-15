@@ -25,6 +25,9 @@ fxgnuboy: $(OBJS) $(FX_OBJS)
 	sh3eb-elf-objcopy -R .comment -R .bss -R .magic_sec -O binary fxgnuboy.elf fxgnuboy.bin
 	g1a-wrapper fxgnuboy.bin -o fxgnuboy.g1a -i MainIcon.bmp
 
+dump: fxgnuboy
+	sh3eb-elf-objdump -d -C -S fxgnuboy.elf > dump
+
 clean:
 	rm -f *.bin *.elf *.g1a $(GNUBOYDIR)/*.o $(FX_GNUBOYDIR)/*.o
 

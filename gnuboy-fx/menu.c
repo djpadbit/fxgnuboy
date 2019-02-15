@@ -2,6 +2,7 @@
 #include "emu.h"
 #include "disp.h"
 #include "lcd.h"
+#include "config.h"
 #include <keyboard.h>
 #include <stdlib.h>
 #include <string.h>
@@ -121,12 +122,15 @@ void menu_config()
 {
 	int ret = 0;
 	while (1) {
-		const char *opts[] = {"<--",lcd_gray_enabled ? "Gray Disable" : "Gray Enable"};
-		ret = menu_chooser(opts,2,"Config",ret);
+		const char *opts[] = {"<--","Reset config",lcd_gray_enabled ? "Gray Disable" : "Gray Enable"};
+		ret = menu_chooser(opts,3,"Config",ret);
 		switch (ret) {
 			case 0:
 				return;
 			case 1:
+				config_reset();
+				break;
+			case 2:
 				lcd_update_gray(!lcd_gray_enabled);
 				break;
 			default:

@@ -15,6 +15,7 @@
 #include "menu.h"
 #include "disp.h"
 #include "loader.h"
+#include "config.h"
 #include <string.h>
 #include <display.h>
 #include <keyboard.h>
@@ -51,6 +52,7 @@ int main()
 		ret = gnuboymain((char*)&romn,0);
 		loader_unload();
 	}
+	config_save();
 
 	return 0;
 }
@@ -64,6 +66,8 @@ void startEmuHook() {
 	} else {
 		printf("Couldn't find state part!\n");
 	}*/
+	config_init(); // get default config
+	config_load(); // load saved config
 	vram_dirty();
 	pal_dirty();
 	sound_dirty();

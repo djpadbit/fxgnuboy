@@ -4,3 +4,4 @@ roms/*
 *.o
 *.bin
 *.elf
+dump
