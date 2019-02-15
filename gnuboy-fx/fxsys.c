@@ -16,17 +16,35 @@
 
 #define NB_FRAMES_HOLD 10
 
-unsigned long timertime = 0;
+#define MAX( a, b ) ( ((a) > (b)) ? (a) : (b) )
+
+volatile unsigned long timertime = 0;
 // 0 -> normal game
 // 1 -> offset adjust
 // 2 -> scaling adjust
 static int input_mode = 0;
 //static int cbid;
 static timer_t *htimer = NULL;
+static volatile uint8_t sleep_flag = 0;
+static volatile unsigned long sleep_time = 0;
 
 static void timer_callback()
 {
 	timertime++;
+	if (sleep_time) {
+		sleep_time--;
+		if (!sleep_time) sleep_flag = 0;
+	}
+}
+
+static void timer_sleepus(unsigned int delay)
+{
+	if (!delay) return;
+	sleep_flag = 1;
+	int dlt = delay/TIMER_DELAY_US;
+	sleep_time = MAX(dlt,0);
+	if (!sleep_time) return;
+	while (sleep_flag) sleep();
 }
 
 void timer_setup()
@@ -55,19 +73,26 @@ void file_make_path(uint16_t* dst,char* root,char *fold,char *fn)
 	dst[strlen(tp)] = 0;
 }
 
+static unsigned long timerval = 0;
+
 void *sys_timer()
 {
-	return NULL;
+	timerval = timertime;
+	return &timerval;
 }
 
 int sys_elapsed(void *cl)
 {
-	return 0;
+	unsigned long *pp = (unsigned long*)cl;
+	int elapsed = (timertime-(*pp))*TIMER_DELAY_US;
+	(*pp) = timertime;
+	return elapsed;
 }
 
 void sys_sleep(int us)
 {
-	//wdt feed
+	if (us<1) return;
+	timer_sleepus(us);
 }
 
 int sys_handle_input() {

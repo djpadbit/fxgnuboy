@@ -9,15 +9,13 @@
 // Size should always even otherwise bfile_write's gonna break
 #define CONFIG_SIZE (sizeof(struct config)+(sizeof(struct config)%2))
 
-#define MIN( a, b ) ( ((a) < (b)) ? (a) : (b) )
-
 struct config
 {
 	uint8_t version;
 	//display stuff
 	int lcd_xoff,lcd_yoff;
 	int lcd_scalex,lcd_scaley;
-	uint8_t lcd_show_debug_info,lcd_gray_enabled;
+	uint8_t lcd_show_debug_info,lcd_gray_enabled,lcd_fps_regul;
 };
 
 static struct config default_conf;
@@ -43,10 +41,10 @@ struct config *config_read()
 	int fd = BFile_Open(path,BFile_ReadOnly);
 	if (fd<0) return NULL;
 	int size = BFile_GetFileSize(fd);
-	int rsize = MIN(size,CONFIG_SIZE);
+	if (size != CONFIG_SIZE) return NULL;
 	struct config *cfg = malloc(CONFIG_SIZE);
 	if (!cfg) return NULL;
-	BFile_Read(fd,cfg,rsize,0);
+	BFile_Read(fd,cfg,size,0);
 	BFile_Close(fd);
 	return cfg;
 }
@@ -76,6 +74,7 @@ void config_apply(struct config *cfg)
 	lcd_update_scaling();
 	lcd_show_debug_info = cfg->lcd_show_debug_info;
 	lcd_update_gray(cfg->lcd_gray_enabled);
+	lcd_fps_regul = cfg->lcd_fps_regul;
 }
 
 void config_get(struct config *cfg)
@@ -86,6 +85,7 @@ void config_get(struct config *cfg)
 	cfg->lcd_scaley = lcd_scaley;
 	cfg->lcd_show_debug_info = lcd_show_debug_info;
 	cfg->lcd_gray_enabled = lcd_gray_enabled;
+	cfg->lcd_fps_regul = lcd_fps_regul;
 }
 
 int config_save()

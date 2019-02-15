@@ -22,6 +22,7 @@ int lcd_scalex,lcd_scaley;
 static int lcd_oscalex,lcd_oscaley;
 uint8_t lcd_show_debug_info;
 uint8_t lcd_gray_enabled = 0;
+uint8_t lcd_fps_regul = 1;
 static unsigned char scalearrx[160];
 static unsigned char scalearry[144];
 
@@ -158,7 +159,7 @@ void vid_setpal(int i, int r, int g, int b)
 }
 
 extern int patcachemiss, patcachehit, frames;
-
+static int fps;
 
 void vid_begin()
 {
@@ -167,6 +168,9 @@ void vid_begin()
 	patcachemiss=0;
 	patcachehit=0;
 	//esp_task_wdt_feed();
+	static unsigned long framet;
+	fps = 1.0/(((timertime-framet))/((float)(TIMER_FREQ)));
+	framet = timertime;
 }
 
 // RGB to Y conversion for 8 bit color
@@ -254,6 +258,18 @@ static inline void gb_render()
 	else gb_mrender();
 }
 
+static inline void debug_render()
+{
+	mprint(1,1,"%i",fps);
+	mprint(1,2,"%i",frames);
+	mprint(1,3,"%i",lcd_xoff);
+	mprint(1,4,"%i",lcd_yoff);
+	mprint(1,5,"%i",lcd_scalex);
+	mprint(1,6,"%i",lcd_scaley);
+	mprint(1,7,"%i",patcachemiss);
+	mprint(1,8,"%i",patcachehit);
+}
+
 void vid_end()
 {
 	/*overlay=NULL;
@@ -264,24 +280,12 @@ void vid_end()
 	} else {
 		fb.ptr = (unsigned char*)frontbuff;
 	}*/
-	static unsigned long framet1,framet2;
-	framet2 = timertime;
-	int fps = 1.0/((framet2-framet1)/(float)(TIMER_FREQ));
+
 	mclear();
-	if (lcd_show_debug_info) {
-		mprint(1,1,"%i",fps);
-		mprint(1,2,"%i",frames);
-		mprint(1,3,"%i",lcd_xoff);
-		mprint(1,4,"%i",lcd_yoff);
-		mprint(1,5,"%i",lcd_scalex);
-		mprint(1,6,"%i",lcd_scaley);
-		mprint(1,7,"%i",patcachemiss);
-		mprint(1,8,"%i",patcachehit);
-	}
+	if (lcd_show_debug_info) debug_render();
 	if (!hw.cgb) gb_render();
 	else gbc_render();
 	mupdate();
-	framet1 = timertime;
 //	printf("Pcm %d pch %d\n", patcachemiss, patcachehit);
 }
 

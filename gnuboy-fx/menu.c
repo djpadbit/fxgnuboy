@@ -122,8 +122,8 @@ void menu_config()
 {
 	int ret = 0;
 	while (1) {
-		const char *opts[] = {"<--","Reset config",lcd_gray_enabled ? "Gray Disable" : "Gray Enable"};
-		ret = menu_chooser(opts,3,"Config",ret);
+		const char *opts[] = {"<--","Reset config",lcd_gray_enabled ? "Gray Disable" : "Gray Enable",lcd_fps_regul ? "FPS Regul. Disable" : "FPS Regul. Enable"};
+		ret = menu_chooser(opts,4,"Config",ret);
 		switch (ret) {
 			case 0:
 				return;
@@ -132,6 +132,9 @@ void menu_config()
 				break;
 			case 2:
 				lcd_update_gray(!lcd_gray_enabled);
+				break;
+			case 3:
+				lcd_fps_regul = !lcd_fps_regul;
 				break;
 			default:
 				return;

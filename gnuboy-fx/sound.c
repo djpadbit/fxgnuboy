@@ -2,6 +2,7 @@
 #include "pcm.h"
 #include <string.h>
 #include <stdio.h>
+#include "lcd.h"
 
 struct pcm pcm;
 
@@ -36,7 +37,7 @@ void pcm_mute() {
 
 int pcm_submit()
 {
-	return 1;
+	return !lcd_fps_regul; //Really dirty hack to change wether or not to regulate fps
 	/*kchal_sound_push(buf, SNDBUFLEN);
 	pcm.pos = 0;
 	return 1;*/

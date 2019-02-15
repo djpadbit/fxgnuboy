@@ -3,10 +3,11 @@
 
 #include <ctype.h>
 
-#define TIMER_FREQ 1024
+#define TIMER_FREQ 2000
+#define TIMER_DELAY_US ((1.0/(double)TIMER_FREQ)*1000000.0)
 //#define TIMER_FREQ_60DIV (TIMER_FREQ/60)
 
-extern unsigned long timertime;
+extern volatile unsigned long timertime;
 
 void timer_setup();
 void timer_cleanup();

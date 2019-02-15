@@ -22,6 +22,7 @@
 #include <gray.h>
 
 unsigned int frames;
+uint8_t config_loaded = 0;
 
 int main()
 {
@@ -66,8 +67,11 @@ void startEmuHook() {
 	} else {
 		printf("Couldn't find state part!\n");
 	}*/
-	config_init(); // get default config
-	config_load(); // load saved config
+	if (!config_loaded) {
+		config_init(); // get default config
+		config_load(); // load saved config
+		config_loaded = 1;
+	}
 	vram_dirty();
 	pal_dirty();
 	sound_dirty();
