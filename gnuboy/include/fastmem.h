@@ -10,7 +10,7 @@
 #include <stdio.h>
 //#include "rom/ets_sys.h"
 
-static byte readb(int a)
+static inline byte readb(int a)
 {
 #ifdef GNUBOYDBG
 	assert(a>=0 && a<=0xffff);
@@ -20,7 +20,7 @@ static byte readb(int a)
 	else return mem_read(a);
 }
 
-static void writeb(int a, byte b)
+static inline void writeb(int a, byte b)
 {
 #ifdef GNUBOYDBG
 	assert(a>=0 && a<=0xffff);
@@ -30,7 +30,7 @@ static void writeb(int a, byte b)
 	else mem_write(a, b);
 }
 
-static int readw(int a)
+static inline int readw(int a)
 {
 #ifdef GNUBOYDBG
 	assert(a>=0 && a<=0xffff);
@@ -54,7 +54,7 @@ static int readw(int a)
 }
 
 
-static void writew(int a, int w)
+static inline void writew(int a, int w)
 {
 #ifdef GNUBOYDBG
 	assert(a>=0 && a<=0xffff);
@@ -86,12 +86,12 @@ static void writew(int a, int w)
 	mem_write(a+1, w>>8);
 }
 
-static byte readhi(int a)
+static inline byte readhi(int a)
 {
 	return readb(a | 0xff00);
 }
 
-static void writehi(int a, byte b)
+static inline void writehi(int a, byte b)
 {
 	writeb(a | 0xff00, b);
 }
