@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include <bfile.h>
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+
 int keyb_input(char* buf,size_t len,const char* ask)
 {
 	int key,ptr;
@@ -93,17 +95,29 @@ int menu_error(const char* first, const char* second)
 	return getkey_opt(getkey_none,0);
 }
 
+static void draw_arrow(int x,int y,int sizex,int sizey,int dir)
+{
+	int asx = dir ? -sizex : sizex;
+	int asy = dir ? -sizey : sizey;
+	mline_oth(x,y,x,y+asy,color_black);
+	mline_oth(x-sizex,y+asx,x,y,color_black);
+	mline_oth(x+sizex,y+asx,x,y,color_black);
+}
+
 int menu_chooser(const char** choices, int nbchoices, const char* title, int start)
 {
 	mclear();
 	int sel=start;
+	int scoff=0;
 	int key;
 	while (1) {
 		mprintp((DWIDTH/2)-(text_length(title)/2), 0,title);
 		mrect(0, 0, 128, 7,color_invert);
 		//mline(0, 7, 128, 7, color_black);
-		for (int i=0;i<nbchoices;i++) mprint(1,i+2,choices[i]);
-		mrect(0, (sel+2) * 8 - 8, 128, ((sel+3) * 8 - 8)-1,color_invert);
+		for (int i=0;i<MIN(nbchoices,7);i++) mprint(1,i+2,choices[i+scoff]);
+		if (scoff) draw_arrow(128-5,9,2,5,0);
+		if (scoff+7 < nbchoices) draw_arrow(128-5,64-2,2,5,1);
+		mrect(0, ((sel-scoff)+2) * 8 - 8, 128, (((sel-scoff)+3) * 8 - 8)-1,color_invert);
 		mupdate();
 		mclear();
 		key = getkey_opt(getkey_none,0);
@@ -111,10 +125,16 @@ int menu_chooser(const char** choices, int nbchoices, const char* title, int sta
 			case KEY_EXIT:
 				return -1;
 			case KEY_DOWN:
-				if (sel < nbchoices-1) sel++;
+				if (sel < nbchoices-1) {
+					sel++;
+					if ((sel-scoff) > 6) scoff++;
+				}
 				break;
 			case KEY_UP:
-				if (sel > 0) sel--;
+				if (sel > 0) {
+					sel--;
+					if ((sel-scoff) < 0) scoff--;
+				}
 				break;
 			case KEY_EXE:
 				return sel;
