@@ -16,8 +16,6 @@
 
 #define NB_FRAMES_HOLD 10
 
-#define MAX( a, b ) ( ((a) > (b)) ? (a) : (b) )
-
 volatile unsigned long timertime = 0;
 // 0 -> normal game
 // 1 -> offset adjust
@@ -25,26 +23,17 @@ volatile unsigned long timertime = 0;
 static int input_mode = 0;
 //static int cbid;
 static timer_t *htimer = NULL;
-static volatile uint8_t sleep_flag = 0;
-static volatile unsigned long sleep_time = 0;
 
 static void timer_callback()
 {
 	timertime++;
-	if (sleep_time) {
-		sleep_time--;
-		if (!sleep_time) sleep_flag = 0;
-	}
 }
 
 static void timer_sleepus(unsigned int delay)
 {
 	if (!delay) return;
-	sleep_flag = 1;
-	int dlt = delay/TIMER_DELAY_US;
-	sleep_time = MAX(dlt,0);
-	if (!sleep_time) return;
-	while (sleep_flag) sleep();
+	unsigned long sleep_tar = timertime+(delay/TIMER_DELAY_US);
+	while (timertime<sleep_tar) sleep();
 }
 
 void timer_setup()
