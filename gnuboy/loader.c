@@ -23,6 +23,9 @@
 
 #include "rombank.h"
 
+//strrchr isn't declared in the string.h of gint
+//char *strrchr(const char *s, int c);
+
 static const int mbc_table[256] =
 {
 	0, 1, 1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3,
@@ -85,13 +88,13 @@ static const int ramsize_table[256] =
 
 static char *romfile;
 static char *sramfile;
-static char *rtcfile;
+//static char *rtcfile;
 static char *saveprefix;
 
-static char *savename;
+/*static char *savename;
 static char *savedir;
 
-static int saveslot;
+static int saveslot;*/
 
 static int forcebatt, nobatt;
 static int forcedmg, gbamode;
@@ -119,7 +122,7 @@ int rom_load()
 {
 	//FILE *f;
 	byte c, *data, *header;
-	int len = 0, rlen, i;
+	//int len = 0, rlen, i;
 
 	if (!rombankLoad(romfile)) return 0;
 	data = getRomBank(0);
@@ -146,7 +149,7 @@ int rom_load()
 		return 0;
 	}
 
-	rlen = 16384 * mbc.romsize;
+	//rlen = 16384 * mbc.romsize;
 	
 	if (mbc.ramsize > 4) {
 		//printf("Header says cart has %d * 8K of save RAM. We don't have that; trying with less.\n", mbc.ramsize);
@@ -215,7 +218,7 @@ void loader_unload()
 	mbc.type = mbc.romsize = mbc.ramsize = mbc.batt = 0;
 }
 
-static char *base(char *s)
+/*static char *base(char *s)
 {
 	char *p;
 	p = strrchr(s, '/');
@@ -227,12 +230,12 @@ static void cleanup()
 {
 //	sram_save();
 //	rtc_save();
-	/* IDEA - if error, write emergency savestate..? */
-}
+	// IDEA - if error, write emergency savestate..? 
+}*/
 
 int loader_init(char *s)
 {
-	char *name, *p;
+	//char *name, *p;
 #if 0
 	sys_checkdir(savedir, 1); /* needs to be writable */
 #endif

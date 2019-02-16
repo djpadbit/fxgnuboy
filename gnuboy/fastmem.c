@@ -47,7 +47,7 @@ const byte hi_wmap[256] =
 
 
 void sound_write();
-static void no_write()
+/*static void no_write()
 {
-}
+}*/
 

@@ -10,7 +10,7 @@
 
 struct rtc rtc;
 
-static int syncrtc = 1;
+//static int syncrtc = 1;
 
 /*
 rcvar_t rtc_exports[] =

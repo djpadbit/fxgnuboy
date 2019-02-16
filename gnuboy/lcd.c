@@ -67,10 +67,10 @@ typedef struct {
 
 static PatcacheEntry __attribute__((section (".magic_sec"))) patcache[CACHED_PATPIX_NO];
 static PatcacheEntry* __attribute__((section (".magic_sec"))) patcacheptr[4096];
-static int patcachefill;
+//static int patcachefill;
 
 
-static int rgb332;
+//static int rgb332;
 
 static int sprsort = 1;
 static int sprdebug;
@@ -439,7 +439,7 @@ static void recolor(byte *buf, byte fill, int cnt)
 	while (cnt--) *(buf++) |= fill;
 }
 
-static void spr_count()
+/*static void spr_count()
 {
 	int i;
 	struct obj *o;
@@ -457,7 +457,7 @@ static void spr_count()
 			continue;
 		if (++NS == 10) break;
 	}
-}
+}*/
 
 static void spr_enum()
 {
@@ -596,7 +596,7 @@ void lcd_begin()
 
 void lcd_refreshline()
 {
-	int i;
+	//int i;
 	byte *dest;
 	
 	if (!fb.enabled) return;
@@ -695,9 +695,12 @@ static void updatepalette(int i)
 		y = (((r *  263) + (g * 516) + (b * 100)) >> 10) + 16;
 		u = (((r *  450) - (g * 377) - (b *  73)) >> 10) + 128;
 		v = (((r * -152) - (g * 298) + (b * 450)) >> 10) + 128;
-		if (y < 0) y = 0; if (y > 255) y = 255;
-		if (u < 0) u = 0; if (u > 255) u = 255;
-		if (v < 0) v = 0; if (v > 255) v = 255;
+		if (y < 0) y = 0;
+		if (y > 255) y = 255;
+		if (u < 0) u = 0;
+		if (u > 255) u = 255;
+		if (v < 0) v = 0;
+		if (v > 255) v = 255;
 		PAL4[i] = (y<<fb.cc[0].l) | (y<<fb.cc[3].l)
 			| (u<<fb.cc[1].l) | (v<<fb.cc[2].l);
 		return;
