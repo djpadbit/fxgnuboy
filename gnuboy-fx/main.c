@@ -56,9 +56,6 @@ int main()
 	//Clear the magic buffer area, just in case
 	memset((uint8_t*)0x88040000,0,256*1024);
 
-	const char *opts[] = {"k1","k2","k3","k4","k5","k6","k7","k8","k9","k10","k11","k12"};
-	menu_chooser(opts, 12, "Jeff", 0);
-
 	char romn[40];
 	int ret = EMU_RUN_NEWROM;
 
