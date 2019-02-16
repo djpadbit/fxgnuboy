@@ -2,10 +2,10 @@
 #define SAVE_H
 
 #include <stdio.h>
-//#include "appfs.h"
 
-void savestate(int f);
-void loadstate(int f);
+int savestate(int f);
+int loadstate(int f);
+int statesize();
 
 #endif
 

@@ -106,8 +106,12 @@ int config_load()
 		if (!config_save()) return -2;
 		return -1;
 	}
-	if (cfg->version != CONFIG_VERSION) return -3;
+	if (cfg->version != CONFIG_VERSION) {
+		free(cfg);
+		return -3;
+	}
 	config_apply(cfg);
+	free(cfg);
 	return 1;
 }
 

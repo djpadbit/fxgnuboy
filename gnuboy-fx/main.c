@@ -20,9 +20,21 @@
 #include <display.h>
 #include <keyboard.h>
 #include <gray.h>
+#include <stdlib.h>
 
 unsigned int frames;
 uint8_t config_loaded = 0;
+
+void die(char *fmt, ...)
+{
+	char tmp[50];
+	va_list ap;
+	va_start(ap, fmt);
+	vsprintf(tmp,fmt,ap);
+	va_end(ap);
+	while (menu_error(tmp,"Press exit to quit") != KEY_EXIT);
+	exit(1);
+}
 
 int main()
 {

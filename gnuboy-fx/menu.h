@@ -3,6 +3,6 @@
 
 int menu_pause();
 int keyb_input(char* buf,size_t len,const char* ask);
-void menu_error(const char* first, const char* second);
+int menu_error(const char* first, const char* second);
 
 #endif

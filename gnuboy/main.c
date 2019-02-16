@@ -12,16 +12,6 @@
 
 #define VERSION "1.0.4"
 
-void die(char *fmt, ...)
-{
-	/*va_list ap;
-	va_start(ap, fmt);
-	vfprintf(stdout, fmt, ap);
-	va_end(ap);
-	printf("Dying.\n");
-	asm("break.n 1");*/
-}
-
 void startEmuHook();
 
 int gnuboymain(char *rom, int loadState)

@@ -3,10 +3,13 @@
 #include "disp.h"
 #include "lcd.h"
 #include "config.h"
+#include "fxsys.h"
+#include <save.h>
 #include <keyboard.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <bfile.h>
 
 int keyb_input(char* buf,size_t len,const char* ask)
 {
@@ -75,9 +78,11 @@ int keyb_input(char* buf,size_t len,const char* ask)
 	return ret;
 }
 
-void menu_error(const char* first, const char* second)
+int menu_error(const char* first, const char* second)
 {
 	mclear();
+	const char *errorstr = "ERROR";
+	mprintp((DWIDTH/2)-(text_length(errorstr)/2), (DHEIGHT/2)-(8*3),errorstr);
 	if (!second) {
 		mprintp((DWIDTH/2)-(text_length(first)/2), (DHEIGHT/2)-4,first);
 	} else {
@@ -85,7 +90,7 @@ void menu_error(const char* first, const char* second)
 		mprintp((DWIDTH/2)-(text_length(second)/2), ((DHEIGHT/2)-4)+4,second);
 	}
 	mupdate();
-	getkey_opt(getkey_none,0);
+	return getkey_opt(getkey_none,0);
 }
 
 int menu_chooser(const char** choices, int nbchoices, const char* title, int start)
@@ -142,15 +147,80 @@ void menu_config()
 	}
 }
 
+void startEmuHook();
+
+void menu_saves()
+{
+	int ret = 0;
+	char saven[40];
+	uint16_t path[64];
+	while (1) {
+		const char *opts[] = {"<--","Load","Save"};
+		ret = menu_chooser(opts,3,"Saves",ret);
+		switch (ret) {
+			case 0:
+				return;
+			case 1:
+				if (keyb_input((char*)&saven,40,"Enter save file name")) {
+					file_make_path(path,"fls0","",(char*)&saven);
+					int fd = BFile_Open(path,BFile_ReadOnly);
+					if (fd<0) {
+						BFile_Remove(path);
+						menu_error("Coudln't open file","File doesn't exist ?");
+						break;
+					}
+					if (!loadstate(fd)) {
+						BFile_Close(fd);
+						menu_error("Coudln't load file","Older save version ?");
+						break;
+					}
+					BFile_Close(fd);
+					startEmuHook(); // To set the dirty flag on all the things so it clears all the caches
+				}
+				break;
+			case 2:
+				if (keyb_input((char*)&saven,40,"Enter save file name")) {
+					file_make_path(path,"fls0","",(char*)&saven);
+					BFile_Remove(path);
+					int asize = statesize();
+					int size = asize;
+					int fd = BFile_Create(path,BFile_File,&size);
+					if (size != asize || fd<0) {
+						BFile_Remove(path);
+						menu_error("Coudln't make file","Not enough space ?");
+						break;
+					}
+					fd = BFile_Open(path,BFile_WriteOnly);
+					if (fd<0) {
+						BFile_Remove(path);
+						menu_error("Coudln't open file","Not enough space ?");
+						break;
+					}
+					if (!savestate(fd)) {
+						BFile_Close(fd);
+						BFile_Remove(path);
+						menu_error("Coudln't save file","Not enough memory ?");
+						break;
+					}
+					BFile_Close(fd);
+				}
+				break;
+			default:
+				return;
+		}
+	}
+}
+
 int menu_pause()
 {
 	int ret = 0;
 	while (1) {
-		const char *opts[] = {"Saves (Not impl.)","Reset","Change ROM","Configuration","Quit"};
+		const char *opts[] = {"Saves","Reset","Change ROM","Configuration","Quit"};
 		ret = menu_chooser(opts,5,"Menu",ret);
 		switch (ret) {
 			case 0:
-				return EMU_RUN_CONT;
+				menu_saves();
+				break;
 			case 1:
 				return EMU_RUN_RESET;
 			case 2:
