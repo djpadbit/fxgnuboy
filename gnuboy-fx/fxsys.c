@@ -16,7 +16,7 @@
 
 #define NB_FRAMES_HOLD 10
 
-volatile unsigned long timertime = 0;
+unsigned long timertime = 0;
 // 0 -> normal game
 // 1 -> offset adjust
 // 2 -> scaling adjust
