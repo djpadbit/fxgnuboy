@@ -62,7 +62,7 @@ int main()
 
 	while (ret == EMU_RUN_NEWROM || ret == EMU_RUN_ROMFAIL) {
 		if (ret == EMU_RUN_ROMFAIL) menu_error("Failed to load rom",NULL);
-		chpos = menu_filechooser("*.gb*","Choose ROM",(char*)&romn,chpos);
+		chpos = menu_filechooser("*.gb;*.gbc","Choose ROM",(char*)&romn,chpos);
 		if (chpos == -1) return 0;
 		else if (chpos == -2) die("No roms found");
 		ret = gnuboymain((char*)&romn,0);

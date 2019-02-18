@@ -249,21 +249,35 @@ int menu_filechooser(char *pathc,char *title,char *choosen,int start)
 {
 	uint16_t path[40];
 	uint16_t foundfile[40];
-	file_make_path(path,"fls0","",pathc);
 	int fhandle;
 	bfile_info fileinfo;
 	char **files;
 	if ((files = (char**)calloc(1, MAX_FILES*sizeof(char*))) == NULL) return -1;
-	int ret,i;
-	for (i=0;i<MAX_FILES;i++) {
-		if (i==0) ret = BFile_FindFirst(path,&fhandle,foundfile,&fileinfo);
-		else ret = BFile_FindNext(fhandle,foundfile,&fileinfo);
-		if (ret < 0) break;
-		files[i] = (char*)calloc(1, MAX_FILES_NAME_LEN+1);
-		if (files[i] == NULL) return -1;
-		file_fc_to_char((uint16_t*)&foundfile,files[i]);
+	int ret;
+	int i=0;
+	char *old = pathc;
+	char *curr = NULL;
+	for (;i<MAX_FILES&&old;) {
+		curr = (char*)strchr(old,';');
+		if (curr) {
+			*curr = 0;
+		}
+		file_make_path(path,"fls0","",old);
+		if (curr) {
+			old = curr+1;
+		} else {
+			old = curr;
+		}
+		for (int f=0;i<MAX_FILES;f++) {
+			if (f==0) ret = BFile_FindFirst(path,&fhandle,foundfile,&fileinfo);
+			else ret = BFile_FindNext(fhandle,foundfile,&fileinfo);
+			if (ret < 0) break;
+			files[i] = (char*)calloc(1, MAX_FILES_NAME_LEN+1);
+			if (files[i] == NULL) return -1;
+			file_fc_to_char((uint16_t*)&foundfile,files[i++]);
+		}
+		BFile_FindClose(fhandle);
 	}
-	BFile_FindClose(fhandle);
 	if (i==0) return -2;
 	ret = menu_chooser((const char**)files,i,title,start);
 	if (ret==-1) {
