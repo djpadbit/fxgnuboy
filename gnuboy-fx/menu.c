@@ -264,6 +264,7 @@ int menu_filechooser(char *pathc,char *title,char *choosen,int start)
 		file_fc_to_char((uint16_t*)&foundfile,files[i]);
 	}
 	BFile_FindClose(fhandle);
+	if (i==0) return -2;
 	ret = menu_chooser((const char**)files,i,title,start);
 	if (ret==-1) {
 		for (int i=0;i<MAX_FILES;i++) {

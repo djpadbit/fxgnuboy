@@ -64,6 +64,7 @@ int main()
 		if (ret == EMU_RUN_ROMFAIL) menu_error("Failed to load rom",NULL);
 		chpos = menu_filechooser("*.gb*","Choose ROM",(char*)&romn,chpos);
 		if (chpos == -1) return 0;
+		else if (chpos == -2) die("No roms found");
 		ret = gnuboymain((char*)&romn,0);
 		loader_unload();
 	}
