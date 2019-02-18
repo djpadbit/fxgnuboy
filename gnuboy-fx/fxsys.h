@@ -10,6 +10,5 @@ extern unsigned long timertime;
 
 void timer_setup();
 void timer_cleanup();
-void file_make_path(uint16_t* dst,char* root,char *fold,char *fn);
 
 #endif

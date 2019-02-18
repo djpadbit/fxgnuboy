@@ -3,7 +3,7 @@
 #include "disp.h"
 #include "lcd.h"
 #include "config.h"
-#include "fxsys.h"
+#include "file.h"
 #include <save.h>
 #include <keyboard.h>
 #include <stdlib.h>
@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include <bfile.h>
 
+#define MAX_FILES 16
+#define MAX_FILES_NAME_LEN 12
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 int keyb_input(char* buf,size_t len,char* ask)
@@ -241,6 +243,41 @@ void menu_saves()
 				return;
 		}
 	}
+}
+
+int menu_filechooser(char *pathc,char *title,char *choosen,int start)
+{
+	uint16_t path[40];
+	uint16_t foundfile[40];
+	file_make_path(path,"fls0","",pathc);
+	int fhandle;
+	bfile_info fileinfo;
+	char **files;
+	if ((files = (char**)calloc(1, MAX_FILES*sizeof(char*))) == NULL) return -1;
+	int ret,i;
+	for (i=0;i<MAX_FILES;i++) {
+		if (i==0) ret = BFile_FindFirst(path,&fhandle,foundfile,&fileinfo);
+		else ret = BFile_FindNext(fhandle,foundfile,&fileinfo);
+		if (ret < 0) break;
+		files[i] = (char*)calloc(1, MAX_FILES_NAME_LEN+1);
+		if (files[i] == NULL) return -1;
+		file_fc_to_char((uint16_t*)&foundfile,files[i]);
+	}
+	BFile_FindClose(fhandle);
+	ret = menu_chooser((const char**)files,i,title,start);
+	if (ret==-1) {
+		for (int i=0;i<MAX_FILES;i++) {
+			if (files[i] != NULL) free(files[i]);
+		}
+		free(files);
+		return -1;
+	}
+	memcpy(choosen,files[ret],MAX_FILES_NAME_LEN+1);
+	for (int i=0;i<MAX_FILES;i++) {
+		if (files[i] != NULL) free(files[i]);
+	}
+	free(files);
+	return ret;
 }
 
 int menu_pause()

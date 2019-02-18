@@ -51,17 +51,6 @@ void timer_cleanup()
 	timer_stop(htimer);
 }
 
-// Based on EDIT's source code (see FilePath function)
-void file_make_path(uint16_t* dst,char* root,char *fold,char *fn)
-{
-	char tp[2+strlen(root)+1+strlen(fold)+1+strlen(fn)+1]; // probably off by 1 or 2 bytes
-	if(strlen(fold)==0) sprintf(tp,"\\\\%s\\%s",root,fn); //File path without folder
-	else if(strlen(fn)==0) sprintf(tp,"\\\\%s\\%s",root,fn); //File path without file
-	else sprintf(tp,"\\\\%s\\%s\\%s",root,fold,fn); //File path with file & folder
-	for (int i=0;i<strlen(tp);i++) dst[i] = tp[i];
-	dst[strlen(tp)] = 0;
-}
-
 static unsigned long timerval = 0;
 
 void *sys_timer()
@@ -160,8 +149,6 @@ int sys_handle_input() {
 					ret = menu_pause();
 					if (ret!=EMU_RUN_CONT) return ret;
 					break;
-				case KEY_EXIT:
-					return EMU_RUN_EXIT;
 			}
 		}
 

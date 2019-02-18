@@ -8,8 +8,9 @@ GNUBOYDIR = gnuboy
 FX_GNUBOYDIR = gnuboy-fx
 SRCFILES = $(wildcard $(GNUBOYDIR)/*.c)
 FX_SRCFILES = $(wildcard $(FX_GNUBOYDIR)/*.c)
+FX_ASMSRCFILES = $(wildcard $(FX_GNUBOYDIR)/*.s)
 OBJS = $(patsubst %.c,%.o,$(SRCFILES))
-FX_OBJS = $(patsubst %.c,%.o,$(FX_SRCFILES))
+FX_OBJS = $(patsubst %.c,%.o,$(FX_SRCFILES)) $(patsubst %.s,%.o,$(FX_ASMSRCFILES))
 
 all: fxgnuboy
 
@@ -18,6 +19,9 @@ all: fxgnuboy
 CFLAGS += -g
 
 %.o: %.c
+	$(CC) $(INCLUDE) $(CFLAGS) -c -o $@ $<
+
+%.o: %.s
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $@ $<
 
 fxgnuboy: $(OBJS) $(FX_OBJS)

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 //#include "appfs.h"
 #include "rombank.h"
-#include "fxsys.h"
+#include "file.h"
 #include <bfile.h>
 
 #define NO_MAPS 64

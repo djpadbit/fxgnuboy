@@ -58,10 +58,12 @@ int main()
 
 	char romn[40];
 	int ret = EMU_RUN_NEWROM;
+	int chpos = 0;
 
 	while (ret == EMU_RUN_NEWROM || ret == EMU_RUN_ROMFAIL) {
 		if (ret == EMU_RUN_ROMFAIL) menu_error("Failed to load rom",NULL);
-		if (!keyb_input((char*)&romn,40,"Enter rom file name")) return 1;
+		chpos = menu_filechooser("*.gb*","Choose ROM",(char*)&romn,chpos);
+		if (chpos == -1) return 0;
 		ret = gnuboymain((char*)&romn,0);
 		loader_unload();
 	}

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <bfile.h>
-#include "fxsys.h"
+#include "file.h"
 #include "lcd.h"
 
 #define CONFIG_FILE "fxgnuboy.cfg"
