@@ -13,11 +13,10 @@
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-int keyb_input(char* buf,size_t len,const char* ask)
+int keyb_input(char* buf,size_t len,char* ask)
 {
-	int key,ptr;
-	ptr = 0;
-	key = 0;
+	int ptr = 0;
+	int key = 0;
 	int ret = 1;
 	int run = 1;
 	int lower = 1;
@@ -25,16 +24,27 @@ int keyb_input(char* buf,size_t len,const char* ask)
 	int ls = 0;
 	int alpha = 0;
 	int la = 0;
+	int alen = strlen(ask);
 	memset(buf,0,len);
 	while (run) {
 		mclear();
-		mprint(1,1,ask);
-		mprint(1,2,buf);
-		mline(ptr*6,8,ptr*6,7+7,color_black);
-		if (lower) mprint(1,3,"Lowercase");
-		else mprint(1,3,"Uppercase");
-		mprint(1,4,"Use OPTN to switch");
-		mprint(1,5,alpha == 2 ? "Alpha lock" : alpha == 1 ? "Alpha" : shift ? "Shift" : "");
+		int ptrl = 1;
+		int lastp = 0;
+		for (int i=0;i<alen;i++) {
+			if (ask[i] == '\n') {
+				ask[i] = 0;
+				mprint(1,ptrl++,ask+lastp);
+				lastp = i+1;
+				ask[i] = '\n';
+			}
+		}
+		if (strlen(ask+lastp) > 0) mprint(1,ptrl++,ask+lastp);
+		mline(ptr*6,(ptrl-1)*8,ptr*6,((ptrl-1)*8)+7,color_black);
+		mprint(1,ptrl++,buf);
+		if (lower) mprint(1,ptrl++,"Lowercase");
+		else mprint(1,ptrl++,"Uppercase");
+		mprint(1,ptrl++,"Use OPTN to switch");
+		mprint(1,ptrl++,alpha == 2 ? "Alpha lock" : alpha == 1 ? "Alpha" : shift ? "Shift" : "");
 		mupdate();
 		key = getkey_opt(getkey_none,0);
 		switch (key) {
@@ -173,6 +183,7 @@ void menu_saves()
 {
 	int ret = 0;
 	char saven[40];
+	char askstr[40];
 	uint16_t path[64];
 	while (1) {
 		const char *opts[] = {"<--","Load","Save"};
@@ -199,7 +210,8 @@ void menu_saves()
 				}
 				break;
 			case 2:
-				if (keyb_input((char*)&saven,40,"Enter save file name")) {
+				sprintf(askstr,"Enter save file name\nRequires %i bytes",statesize());
+				if (keyb_input((char*)&saven,40,(char*)&askstr)) {
 					file_make_path(path,"fls0","",(char*)&saven);
 					BFile_Remove(path);
 					int asize = statesize();
