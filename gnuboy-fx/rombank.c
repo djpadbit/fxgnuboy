@@ -31,7 +31,7 @@ to a register disables it.
 //static int ctr=0;
 //static MappedPage page[NO_MAPS];
 //static appfs_handle_t romFd;
-int romfd;
+static int romfd;
 // max would be 6 with default settings, but you can lower the pix cache and get a bit more (probably)
 #define NO_ROMBANKS 4
 
@@ -39,6 +39,7 @@ static uint8_t __attribute__((section (".magic_sec"))) rombanks[NO_ROMBANKS][16*
 static uint8_t rombanks_mapped[NO_ROMBANKS];
 static unsigned int rombanks_use_ctr[NO_ROMBANKS];
 static uint8_t __attribute__((section (".magic_sec"))) rombank0[16*1024];
+int rombankmiss, rombankhit;
 
 //static uint8_t *bootrom=NULL;
 //static uint8_t *rombank0=NULL; //ToDo: Fix this
@@ -90,19 +91,20 @@ uint8_t *getRomBank(int bank) {
 	// Find bank mapped
 	for (int i=0;i<NO_ROMBANKS;i++) {
 		if (bank == rombanks_mapped[i]) {
+			rombankhit++;
 			rombanks_use_ctr[i]++;
 			return (uint8_t*)&rombanks[i];
 		}
 	}
+	rombankmiss++;
 	// No rombanks found, search for open spot or get least used bank
 	int op = 0;
 	for (int i=0;i<NO_ROMBANKS;i++) {
 		if (!rombanks_mapped[i]) {
 			op = i;
 			break; // if we find an open slot, break
-		} else { // else keep track of the least used bank
-			if (rombanks_use_ctr[i] < rombanks_use_ctr[op]) op = i;
-		}
+		} // else keep track of the least used bank
+		if (rombanks_use_ctr[i] < rombanks_use_ctr[op]) op = i;
 	}
 	if (romfd<0) return (uint8_t*)&rombanks[op]; // Needs a better thing
 	BFile_Read(romfd,&rombanks[op],16*1024,16*1024*bank);
@@ -137,6 +139,7 @@ void rombankUnload() {
 		if (rombanks_mapped[i]) {
 			memset(&rombanks[i],0,16*1024);
 			rombanks_mapped[i] = 0;
+			rombanks_use_ctr[i] = 0;
 		}
 	}
 	BFile_Close(romfd);

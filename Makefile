@@ -12,7 +12,7 @@ FX_ASMSRCFILES = $(wildcard $(FX_GNUBOYDIR)/*.s)
 OBJS = $(patsubst %.c,%.o,$(SRCFILES))
 FX_OBJS = $(patsubst %.c,%.o,$(FX_SRCFILES)) $(patsubst %.s,%.o,$(FX_ASMSRCFILES))
 
-all: fxgnuboy
+all: fxgnuboy.g1a
 
 #debug: CFLAGS += -g
 #debug: all
@@ -24,13 +24,18 @@ CFLAGS += -g
 %.o: %.s
 	$(CC) $(INCLUDE) $(CFLAGS) -c -o $@ $<
 
-fxgnuboy: $(OBJS) $(FX_OBJS)
+fxgnuboy.elf: $(OBJS) $(FX_OBJS)
 	$(CC) $(OBJS) $(FX_OBJS) $(LDFLAGS) -o fxgnuboy.elf
+
+fxgnuboy.bin: fxgnuboy.elf
 	sh3eb-elf-objcopy -R .comment -R .bss -R .magic_sec -O binary fxgnuboy.elf fxgnuboy.bin
+
+fxgnuboy.g1a: fxgnuboy.bin
 	g1a-wrapper fxgnuboy.bin -o fxgnuboy.g1a -i MainIcon.bmp
 
-dump: fxgnuboy
+dump: fxgnuboy.g1a
 	sh3eb-elf-objdump -d -C -S fxgnuboy.elf > dump
+	subl dump
 
 clean:
 	rm -f *.bin *.elf *.g1a $(GNUBOYDIR)/*.o $(FX_GNUBOYDIR)/*.o

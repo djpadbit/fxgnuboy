@@ -159,6 +159,7 @@ void vid_setpal(int i, int r, int g, int b)
 }
 
 extern int patcachemiss, patcachehit, frames;
+extern int rombankmiss, rombankhit;
 static int fps;
 
 void vid_begin()
@@ -167,6 +168,8 @@ void vid_begin()
 	frames++;
 	patcachemiss=0;
 	patcachehit=0;
+	rombankmiss=0;
+	rombankhit=0;
 	//esp_task_wdt_feed();
 	static unsigned long framet;
 	fps = 1.0/((timertime-framet)/((float)(TIMER_FREQ)));
@@ -261,13 +264,13 @@ static inline void gb_render()
 static inline void debug_render()
 {
 	mprint(1,1,"%i",fps);
-	mprint(1,2,"%i",frames);
-	mprint(1,3,"%i",lcd_xoff);
-	mprint(1,4,"%i",lcd_yoff);
-	mprint(1,5,"%i",lcd_scalex);
-	mprint(1,6,"%i",lcd_scaley);
-	mprint(1,7,"%i",patcachemiss);
-	mprint(1,8,"%i",patcachehit);
+	mprint(1,2,"%i",lcd_xoff);
+	mprint(1,3,"%i",lcd_yoff);
+	mprint(1,4,"%i",lcd_scalex);
+	mprint(1,5,"%i",lcd_scaley);
+	mprint(1,6,"%i",patcachemiss);
+	mprint(1,7,"%i",patcachehit);
+	mprint(1,8,"%i,%i",rombankmiss,rombankhit);
 }
 
 void vid_end()
