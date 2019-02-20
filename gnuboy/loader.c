@@ -157,11 +157,11 @@ int rom_load()
 	}
 	
 	ram.prev_rambank=-1;
-	ram.sbank = malloc(8192); //swap space
+	/*ram.sbank = malloc(8192); //swap space
 	if (ram.sbank==NULL) {
 		//printf("Can't allocate SRAM swap area!\n");
 		return 0;
-	}
+	}*/
 	
 	ram.sbanks = calloc(sizeof(byte*), mbc.ramsize);
 	if (ram.sbanks==NULL) {
@@ -212,9 +212,9 @@ void loader_unload()
 		free(ram.sbanks[i]);
 	}
 	free(ram.sbanks);
-	if (ram.sbank) free(ram.sbank);
+	//if (ram.sbank) free(ram.sbank);
 	romfile = sramfile = saveprefix = 0;
-	ram.sbank = 0;
+	ram.sbank = NULL;
 	mbc.type = mbc.romsize = mbc.ramsize = mbc.batt = 0;
 }
 

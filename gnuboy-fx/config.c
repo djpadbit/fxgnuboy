@@ -19,6 +19,7 @@ struct config
 };
 
 static struct config default_conf;
+static struct config loaded_conf;
 
 int config_create()
 {
@@ -34,7 +35,7 @@ int config_create()
 	return 1;
 }
 
-struct config *config_read()
+struct config *config_read(struct config *cfg)
 {
 	uint16_t path[64];
 	file_make_path(path,"fls0","",CONFIG_FILE);
@@ -42,8 +43,10 @@ struct config *config_read()
 	if (fd<0) return NULL;
 	int size = BFile_GetFileSize(fd);
 	if (size != CONFIG_SIZE) return NULL;
-	struct config *cfg = malloc(CONFIG_SIZE);
-	if (!cfg) return NULL;
+	if (!cfg) {
+		cfg = malloc(CONFIG_SIZE);
+		if (!cfg) return NULL;
+	}
 	BFile_Read(fd,cfg,size,0);
 	BFile_Close(fd);
 	return cfg;
@@ -101,7 +104,7 @@ int config_save()
 
 int config_load()
 {
-	struct config *cfg = config_read();
+	struct config *cfg = config_read(&loaded_conf);
 	if (!cfg) {
 		if (!config_save()) return -2;
 		return -1;
@@ -111,8 +114,12 @@ int config_load()
 		return -3;
 	}
 	config_apply(cfg);
-	free(cfg);
 	return 1;
+}
+
+void config_apply_loaded()
+{
+	config_apply(&loaded_conf);
 }
 
 void config_init()

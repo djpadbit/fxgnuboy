@@ -21,8 +21,9 @@ struct ram __attribute__((section (".magic_sec"))) ram;
 void select_rambank(int i) {
 	if (i == ram.prev_rambank) return; //no need to do anything
 	//Swap out ram bank
-	if (ram.prev_rambank!=-1) memcpy(ram.sbanks[ram.prev_rambank], ram.sbank, 8192);
-	memcpy(ram.sbank, ram.sbanks[i], 8192);
+	/*if (ram.prev_rambank!=-1) memcpy(ram.sbanks[ram.prev_rambank], ram.sbank, 8192);
+	memcpy(ram.sbank, ram.sbanks[i], 8192);*/
+	ram.sbank = ram.sbanks[i];
 	ram.prev_rambank = i;
 }
 

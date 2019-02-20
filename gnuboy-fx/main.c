@@ -84,8 +84,9 @@ void startEmuHook() {
 	}*/
 	if (!config_loaded) {
 		config_init(); // get default config
-		config_load(); // load saved config
-		config_loaded = 1;
+		config_loaded = config_load(); // load saved config
+	} else if (config_loaded==1) {
+		config_apply_loaded(); // We need to reapply the config each time we load a new rom
 	}
 	vram_dirty();
 	pal_dirty();
