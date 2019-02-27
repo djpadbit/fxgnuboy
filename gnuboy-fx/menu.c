@@ -162,8 +162,6 @@ void menu_config()
 		const char *opts[] = {"<--","Reset config",lcd_gray_enabled ? "Gray Disable" : "Gray Enable",lcd_fps_regul ? "FPS Regul. Disable" : "FPS Regul. Enable"};
 		ret = menu_chooser(opts,4,"Config",ret);
 		switch (ret) {
-			case 0:
-				return;
 			case 1:
 				config_reset();
 				break;
@@ -173,7 +171,9 @@ void menu_config()
 			case 3:
 				lcd_fps_regul = !lcd_fps_regul;
 				break;
+			case 0:
 			default:
+				config_update_loaded();
 				return;
 		}
 	}
@@ -191,8 +191,6 @@ void menu_saves()
 		const char *opts[] = {"<--","Load","Save"};
 		ret = menu_chooser(opts,3,"Saves",ret);
 		switch (ret) {
-			case 0:
-				return;
 			case 1:
 				if (keyb_input((char*)&saven,40,"Enter save file name")) {
 					file_make_path(path,"fls0","",(char*)&saven);
@@ -239,6 +237,7 @@ void menu_saves()
 					BFile_Close(fd);
 				}
 				break;
+			case 0:
 			default:
 				return;
 		}

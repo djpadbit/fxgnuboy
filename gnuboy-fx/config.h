@@ -4,6 +4,7 @@
 int config_load();
 int config_save();
 void config_apply_loaded();
+void config_update_loaded();
 void config_init();
 void config_reset();
 

@@ -122,6 +122,11 @@ void config_apply_loaded()
 	config_apply(&loaded_conf);
 }
 
+void config_update_loaded()
+{
+	config_get(&loaded_conf);
+}
+
 void config_init()
 {
 	config_get(&default_conf);
