@@ -66,6 +66,7 @@ int main()
 		if (chpos == -1) return 0;
 		else if (chpos == -2) die("No roms found");
 		ret = gnuboymain((char*)&romn,0);
+		config_update_loaded();
 		loader_unload();
 	}
 	config_save();

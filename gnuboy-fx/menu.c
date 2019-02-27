@@ -173,7 +173,6 @@ void menu_config()
 				break;
 			case 0:
 			default:
-				config_update_loaded();
 				return;
 		}
 	}
