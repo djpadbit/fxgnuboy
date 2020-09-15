@@ -16,11 +16,11 @@
 #include "disp.h"
 #include "loader.h"
 #include "config.h"
-#include <string.h>
-#include <display.h>
-#include <keyboard.h>
-#include <gray.h>
-#include <stdlib.h>
+#include <gint/std/string.h>
+#include <gint/display.h>
+#include <gint/keyboard.h>
+#include <gint/gray.h>
+#include <gint/std/stdlib.h>
 
 unsigned int frames;
 uint8_t config_loaded = 0;
@@ -32,8 +32,8 @@ void die(char *fmt, ...)
 	va_start(ap, fmt);
 	vsprintf(tmp,fmt,ap);
 	va_end(ap);
-	while (menu_error(tmp,"Press exit to quit") != KEY_EXIT);
-	exit(1);
+	while (menu_error(tmp,"Press exit to continue") != KEY_EXIT);
+	//exit(1);
 }
 
 int main()

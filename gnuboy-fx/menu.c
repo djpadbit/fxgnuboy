@@ -6,15 +6,75 @@
 #include "file.h"
 #include "menu.h"
 #include <save.h>
-#include <keyboard.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <bfile.h>
+#include <gint/keyboard.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/string.h>
+//#include <ctype.h>
+#include <gint/bfile.h>
 
 #define MAX_FILES 16
 #define MAX_FILES_NAME_LEN 12
 #define MIN(a,b) (((a)<(b))?(a):(b))
+
+// Gint removed key_char for some reason and it changed the keycodes
+// So i took the original code and fixed up key_id to get the right id
+// with the new keycodes. It seems to work fine ?
+
+static int key_id(int matrix_key)
+{
+	if(matrix_key < 0) return -1;
+
+	int row = 9 - ((matrix_key & 0xf0) >> 4);
+	int column = (matrix_key & 0x0f);
+
+	return 6 * row + column - 1;
+}
+
+static int key_char(int matrix_key, int alphak)
+{
+	char flat[] = {
+		0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+		0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+		0x0, '2', '^', 0x0, 0x0, 0x0,
+		'X', 'L', 'l', 's', 'c', 't',
+		0x0, 0x0, '(', ')', ',', '>',
+		'7', '8', '9', 0x0, 0x0, 0x0,
+		'4', '5', '6', '*', '/', 0x0,
+		'1', '2', '3', '+', '-', 0x0,
+		'0', '.', 'e', '_', 0x0, 0x0
+	};
+	char alpha[] = {
+		0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+		0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+		0x0, 'r', 'o', 0x0, 0x0, 0x0,
+		'A', 'B', 'C', 'D', 'E', 'F',
+		'G', 'H', 'I', 'J', 'K', 'L',
+		'M', 'N', 'O', 0x0, 0x0, 0x0,
+		'P', 'Q', 'R', 'S', 'T', 0x0,
+		'U', 'V', 'W', 'X', 'Y', 0x0,
+		'Z', ' ', '"', 0x0, 0x0, 0x0
+	};
+
+	int id = key_id(matrix_key);
+	return alphak ? alpha[id] : flat[id];
+}
+
+// They aren't implemented anymore so i just grabbed some implementations of the internet
+
+// https://stackoverflow.com/questions/19300596/implementation-of-tolower-function-in-c
+static char tolower(int chr)
+{
+	return (chr >='A' && chr<='Z') ? (chr + 32) : chr;
+}
+
+// https://clc-wiki.net/wiki/C_standard_library:string.h:strchr
+static char *strchr(const char *s, int c)
+{
+	while (*s != (char)c)
+		if (!*s++)
+			return 0;
+	return (char *)s;
+}
 
 // This is a mess, i need to rework it to have proper deleting and stuff
 int keyb_input(char* buf,size_t len,char* ask)
@@ -44,14 +104,15 @@ int keyb_input(char* buf,size_t len,char* ask)
 			}
 		}
 		if (strlen(ask+lastp) > 0) mprint(1,ptrl++,ask+lastp);
-		mline(ptr*6,(ptrl-1)*8,ptr*6,((ptrl-1)*8)+7,color_black);
+		mline(ptr*6,(ptrl-1)*8,ptr*6,((ptrl-1)*8)+7,C_BLACK);
 		mprint(1,ptrl++,buf);
 		if (lower) mprint(1,ptrl++,"Lowercase");
 		else mprint(1,ptrl++,"Uppercase");
 		mprint(1,ptrl++,"Use OPTN to switch");
 		mprint(1,ptrl++,alpha == 2 ? "Alpha lock" : alpha == 1 ? "Alpha" : shift ? "Shift" : "");
 		mupdate();
-		key = getkey_opt(getkey_none,0);
+		key = getkey_opt(GETKEY_NONE,NULL).key;
+		char keyc;
 		switch (key) {
 			case KEY_LEFT:
 				if (ptr > 0) ptr--;
@@ -84,11 +145,10 @@ int keyb_input(char* buf,size_t len,char* ask)
 				else alpha = !alpha;
 				break;
 			default:
-				if (alpha) key |= MOD_ALPHA;
-				if (shift) key |= MOD_SHIFT;
-				if (key_char(key) != 0 && ptr < len+1) {
+				keyc = key_char(key,alpha);
+				if (keyc != 0 && ptr < len+1) {
 					if (ptr==mptr) buf[ptr+1] = 0;
-					buf[ptr++] = lower ? tolower(key_char(key)) : key_char(key);
+					buf[ptr++] = lower ? tolower(keyc) : keyc;
 				}
 				break;
 		}
@@ -114,7 +174,7 @@ int menu_error(const char* first, const char* second)
 		mprintp((DWIDTH/2)-(text_length(second)/2), ((DHEIGHT/2)-4)+4,second);
 	}
 	mupdate();
-	return getkey_opt(getkey_none,0);
+	return getkey_opt(GETKEY_NONE,NULL).key;
 }
 
 int menu_confirm(const char* first, const char* second)
@@ -133,7 +193,7 @@ int menu_confirm(const char* first, const char* second)
 	mupdate();
 	int key;
 	while (1) {
-		key = getkey_opt(getkey_none,0);
+		key = getkey_opt(GETKEY_NONE,NULL).key;
 		if (key == KEY_F1) return 1;
 		else if (key == KEY_F6) return 0;
 	}
@@ -143,9 +203,9 @@ static void draw_arrow(int x,int y,int sizex,int sizey,int dir)
 {
 	int asx = dir ? -sizex : sizex;
 	int asy = dir ? -sizey : sizey;
-	mline_oth(x,y,x,y+asy,color_black);
-	mline_oth(x-sizex,y+asx,x,y,color_black);
-	mline_oth(x+sizex,y+asx,x,y,color_black);
+	mline(x,y,x,y+asy,C_BLACK);
+	mline(x-sizex,y+asx,x,y,C_BLACK);
+	mline(x+sizex,y+asx,x,y,C_BLACK);
 }
 
 int menu_chooser(const char** choices, int nbchoices, const char* title, int start)
@@ -156,15 +216,15 @@ int menu_chooser(const char** choices, int nbchoices, const char* title, int sta
 	int key;
 	while (1) {
 		mprintp((DWIDTH/2)-(text_length(title)/2), 0,title);
-		mrect(0, 0, 128, 7,color_invert);
-		//mline(0, 7, 128, 7, color_black);
+		mrect(0, 0, 128, 7,C_INVERT);
+		//mline(0, 7, 128, 7, C_BLACK);
 		for (int i=0;i<MIN(nbchoices,7);i++) mprint(1,i+2,choices[i+scoff]);
 		if (scoff) draw_arrow(128-5,9,2,5,0);
 		if (scoff+7 < nbchoices) draw_arrow(128-5,64-2,2,5,1);
-		mrect(0, ((sel-scoff)+2) * 8 - 8, 128, (((sel-scoff)+3) * 8 - 8)-1,color_invert);
+		mrect(0, ((sel-scoff)+2) * 8 - 8, 128, (((sel-scoff)+3) * 8 - 8)-1,C_INVERT);
 		mupdate();
 		mclear();
-		key = getkey_opt(getkey_none,0);
+		key = getkey_opt(GETKEY_NONE,NULL).key;
 		switch (key) {
 			case KEY_EXIT:
 				return -1;
@@ -285,7 +345,7 @@ int menu_filechooser(char *pathc,char *title,char *choosen,int start)
 	uint16_t path[40];
 	uint16_t foundfile[40];
 	int fhandle;
-	bfile_info fileinfo;
+	struct BFile_FileInfo fileinfo;
 	char *files[MAX_FILES+1] = {NULL};
 	files[0] = "Manual entry";
 	int ret;

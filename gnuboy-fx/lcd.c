@@ -1,16 +1,16 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/stdio.h>
 #include "fb.h"
 #include "lcd.h"
 #include "fxsys.h"
 #include "disp.h"
 #include "hw.h"
-#include <string.h>
-#include <display.h>
-#include <keyboard.h>
-#include <rtc.h>
-#include <timer.h>
-#include <gray.h>
+#include <gint/std/string.h>
+#include <gint/display.h>
+#include <gint/keyboard.h>
+#include <gint/rtc.h>
+#include <gint/timer.h>
+#include <gint/gray.h>
 
 
 static uint8_t __attribute__((section (".magic_sec"))) buff[160*144];
@@ -56,14 +56,14 @@ void lcd_update_scaling()
 void lcd_update_gray(uint8_t state)
 {
 	if (state == lcd_gray_enabled) return;
-	if (!state) gray_stop();
-	else gray_start();
+	if (!state) dgray(DGRAY_OFF);
+	else dgray(DGRAY_ON);
 	lcd_gray_enabled = state;
 }
 
 void vid_preinit()
 {
-	timer_setup();
+	timer_startup();
 }
 
 void vid_init()
@@ -199,9 +199,9 @@ static inline void gbc_grender()
 			int val = grayscale[buff[(y*160)+x]];
 			int xo = sax + lcd_xoff;
 			int yo = say + lcd_yoff;
-			if (val >= 192) gpixel(xo,yo,color_black);
-			else if (val >= 128) gpixel(xo,yo,color_dark);
-			else if (val >= 64) gpixel(xo,yo,color_light);
+			if (val >= 192) dpixel(xo,yo,C_BLACK);
+			else if (val >= 128) dpixel(xo,yo,C_DARK);
+			else if (val >= 64) dpixel(xo,yo,C_LIGHT);
 		}
 	}
 }
@@ -213,15 +213,9 @@ static inline void gbc_mrender()
 			int sax = scalearrx[x];
 			int say = scalearry[y];
 			if (sax == 255 || say == 255) continue;
-			if (grayscale[buff[(y*160)+x]] >= 128) dpixel(sax + lcd_xoff,say + lcd_yoff,color_black);
+			if (grayscale[buff[(y*160)+x]] >= 128) dpixel(sax + lcd_xoff,say + lcd_yoff,C_BLACK);
 		}
 	}
-}
-
-static inline void gbc_render()
-{
-	if (lcd_gray_enabled) gbc_grender();
-	else gbc_mrender();
 }
 
 static inline void gb_grender()
@@ -235,9 +229,9 @@ static inline void gb_grender()
 			int xo = sax + lcd_xoff;
 			int yo = say + lcd_yoff;
 			//7,6,4,2,0
-			if (val > 6) gpixel(xo,yo,color_black);
-			else if (val > 4) gpixel(xo,yo,color_dark);
-			else if (val > 2) gpixel(xo,yo,color_light);
+			if (val > 6) dpixel(xo,yo,C_BLACK);
+			else if (val > 4) dpixel(xo,yo,C_DARK);
+			else if (val > 2) dpixel(xo,yo,C_LIGHT);
 		}
 	}
 }
@@ -250,9 +244,15 @@ static inline void gb_mrender()
 			int say = scalearry[y];
 			if (sax == 255 || say == 255) continue;
 			//7,6,4,2,0
-			if (((buff[(y*160)+x]>>2)&0x7) > 4) dpixel(sax + lcd_xoff,say + lcd_yoff,color_black);
+			if (((buff[(y*160)+x]>>2)&0x7) > 4) dpixel(sax + lcd_xoff,say + lcd_yoff,C_BLACK);
 		}
 	}
+}
+
+static inline void gbc_render()
+{
+	if (lcd_gray_enabled) gbc_grender();
+	else gbc_mrender();
 }
 
 static inline void gb_render()

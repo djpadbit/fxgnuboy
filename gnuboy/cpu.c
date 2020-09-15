@@ -12,7 +12,7 @@
 #include "cpucore.h"
 #include "lcdc.h"
 #include "debug.h"
-#include <string.h>
+#include <gint/std/string.h>
 
 //#include "esp_attr.h"
 

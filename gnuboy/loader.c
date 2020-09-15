@@ -2,13 +2,13 @@
 #define _POSIX_C_SOURCE 200809L
 #undef _GNU_SOURCE
 #define _GNU_SOURCE
-#include <string.h>
+#include <gint/std/string.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <time.h>
-#include <string.h>
+#include <gint/std/stdio.h>
+#include <gint/std/stdlib.h>
+//#include <ctype.h>
+//#include <time.h>
+#include <gint/std/string.h>
 
 #include "defs.h"
 #include "regs.h"
@@ -107,7 +107,8 @@ static void initmem(void *mem, int size)
 	char *p = mem;
 	if (memrand >= 0)
 	{
-		srand(memrand ? memrand : time(0));
+		//srand(memrand ? memrand : time(0));
+		srand(memrand);
 		while(size--) *(p++) = rand();
 	}
 	else if (memfill >= 0)

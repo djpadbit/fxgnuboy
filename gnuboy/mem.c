@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <string.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/string.h>
 
 #include "defs.h"
 #include "hw.h"

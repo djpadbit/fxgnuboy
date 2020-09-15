@@ -1,17 +1,15 @@
 #ifndef __DISP_H__
 #define __DISP_H__
 
-#include <display.h>
+#include <gint/display.h>
 
-void mprint(int x,int y, const char* fmt, ...);
-void mprintp(int x,int y, const char* fmt, ...);
-void mtext(int x, int y, const char *str);
-void mclear();
-void mupdate();
-void dline_oth(int x0, int y0, int x1, int y1,color_t op);
-void gline_oth(int x0, int y0, int x1, int y1,color_t op);
-void mline_oth(int x0, int y0, int x1, int y1,color_t op);
-void mline(int x1, int y1, int x2, int y2, color_t _operator);
-void mrect(int x1, int y1, int x2, int y2, color_t _operator);
+#define mprint(x,y,fmt, ...) dprint((x)*6-5, (y)*8-8, C_BLACK, fmt,  ##__VA_ARGS__)
+#define mprintp(x,y,fmt, ...) dprint(x, y, C_BLACK, fmt,  ##__VA_ARGS__)
+#define mclear() dclear(C_WHITE)
+#define mupdate() dupdate()
+#define mline(x0,y0,x1,y1,op) dline(x0,y0,x1,y1,op);
+#define mrect(x0,y0,x1,y1,op) drect(x0,y0,x1,y1,op);
+
+int text_length(const char *str);
 
 #endif

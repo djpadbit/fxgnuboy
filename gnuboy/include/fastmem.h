@@ -5,9 +5,9 @@
 
 #include "defs.h"
 #include "mem.h"
-#include <stdlib.h>
+#include <gint/std/stdlib.h>
 
-#include <stdio.h>
+#include <gint/std/stdio.h>
 //#include "rom/ets_sys.h"
 
 static inline byte readb(int a)

@@ -1,7 +1,7 @@
 
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/stdio.h>
 
 #include "defs.h"
 #include "cpu.h"

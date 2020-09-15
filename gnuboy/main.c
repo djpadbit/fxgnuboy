@@ -1,8 +1,8 @@
 #undef _GNU_SOURCE
 #define _GNU_SOURCE
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <gint/std/string.h>
+#include <gint/std/stdio.h>
+#include <gint/std/stdlib.h>
 
 #include <stdarg.h>
 

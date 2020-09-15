@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <gint/std/stdio.h>
+#include <gint/std/string.h>
 #include "file.h"
 
 // The 3 functions below are based on EDIT's source code (see FilePath, Font2Char and Char2Font function)

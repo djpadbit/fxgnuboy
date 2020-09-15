@@ -1,8 +1,8 @@
 
 
 
-#include <stdio.h>
-#include <time.h>
+#include <gint/std/stdio.h>
+//#include <time.h>
 
 #include "defs.h"
 #include "mem.h"

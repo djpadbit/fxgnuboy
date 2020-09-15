@@ -1,15 +1,15 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <gint/std/stdio.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/string.h>
 #include <stdarg.h>
-#include <time.h>
+#include <gint/timer.h>
+#include <gint/clock.h>
 #include <hw.h>
 #include "emu.h"
-#include <events.h>
-#include <keyboard.h>
-#include <display.h>
-#include <ctype.h>
-#include <gray.h>
+#include <gint/keyboard.h>
+#include <gint/display.h>
+//#include <ctype.h>
+#include <gint/gray.h>
 #include "fxsys.h"
 #include "lcd.h"
 #include "menu.h"
@@ -22,11 +22,12 @@ unsigned long timertime = 0;
 // 2 -> scaling adjust
 static int input_mode = 0;
 //static int cbid;
-static timer_t *htimer = NULL;
+static int htimer;
 
-static void timer_callback()
+static int timer_callback()
 {
 	timertime++;
+	return TIMER_CONTINUE;
 }
 
 static void timer_sleepus(unsigned int delay)
@@ -36,12 +37,11 @@ static void timer_sleepus(unsigned int delay)
 	while (timertime<sleep_tar) sleep();
 }
 
-void timer_setup()
+void timer_startup()
 {
 	//cbid = rtc_cb_add(rtc_freq_256Hz,timer_callback,0);
-	uint32_t delay = clock_setting(TIMER_FREQ, clock_Hz);
-	htimer = htimer_setup(timer_user, delay, timer_Po_4, 0);
-	timer_attach(htimer, timer_callback, NULL);
+	uint32_t delay = timer_delay(2, TIMER_DELAY_US, TIMER_Pphi_4);
+	htimer = timer_setup(2, delay, timer_callback);
 	timer_start(htimer);
 }
 
@@ -93,15 +93,14 @@ int sys_handle_input() {
 	// Will be kept between function calls
 	static uint8_t keypress[4];
 	int ret;
-	event_t e;
-	e = pollevent();
+	key_event_t e = pollevent();
 	while(1)
 	{
-		if (e.type == event_none)
+		if (e.type == KEYEV_NONE)
 			break;
 
-		if (e.type == event_key_press) {
-			switch (e.key.code) {
+		if (e.type == KEYEV_DOWN) {
+			switch (e.key) {
 				case KEY_SHIFT:
 					if (!input_mode) hw.pad|=PAD_A;
 					break;
@@ -152,8 +151,8 @@ int sys_handle_input() {
 			}
 		}
 
-		else if (e.type == event_key_release) {
-			switch (e.key.code) {
+		else if (e.type == KEYEV_UP) {
+			switch (e.key) {
 				case KEY_SHIFT:
 					if (!input_mode) hw.pad^=PAD_A;
 					break;

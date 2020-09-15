@@ -1,6 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
-#include <bfile.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/string.h>
+#include <gint/bfile.h>
 #include "file.h"
 #include "lcd.h"
 
@@ -41,13 +41,13 @@ struct config *config_read(struct config *cfg)
 	file_make_path(path,"fls0","",CONFIG_FILE);
 	int fd = BFile_Open(path,BFile_ReadOnly);
 	if (fd<0) return NULL;
-	int size = BFile_GetFileSize(fd);
-	if (size != CONFIG_SIZE) return NULL;
+	//int size = BFile_GetFileSize(fd);
+	//if (size != CONFIG_SIZE) return NULL;
 	if (!cfg) {
 		cfg = malloc(CONFIG_SIZE);
 		if (!cfg) return NULL;
 	}
-	BFile_Read(fd,cfg,size,0);
+	BFile_Read(fd,cfg,CONFIG_SIZE,0);
 	BFile_Close(fd);
 	return cfg;
 }
@@ -58,11 +58,11 @@ int config_write(struct config *cfg)
 	file_make_path(path,"fls0","",CONFIG_FILE);
 	int fd = BFile_Open(path,BFile_WriteOnly);
 	if (fd<0) return 0;
-	int size = BFile_GetFileSize(fd);
+	/*int size = BFile_GetFileSize(fd);
 	if (size < CONFIG_SIZE) {
 		BFile_Close(fd);
 		return 0;
-	}
+	}*/
 	BFile_Write(fd,cfg,CONFIG_SIZE);
 	BFile_Close(fd);
 	return 1;

@@ -1,6 +1,6 @@
 
 
-#include <stdlib.h>
+#include <gint/std/stdlib.h>
 
 #include "defs.h"
 #include "hw.h"

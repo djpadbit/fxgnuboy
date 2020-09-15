@@ -1,6 +1,6 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <gint/std/string.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/stdio.h>
 #include <stdint.h>
 
 #include "refresh.h"

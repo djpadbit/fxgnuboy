@@ -1,6 +1,6 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <gint/std/string.h>
+#include <gint/std/stdlib.h>
+#include <gint/std/stdio.h>
 
 #include "defs.h"
 #include "cpu.h"
@@ -14,7 +14,7 @@
 
 //#include "appfs.h"
 //#include <malloc.h>
-#include <bfile.h>
+#include <gint/bfile.h>
 #include "rombank.h"
 
 #ifdef IS_LITTLE_ENDIAN

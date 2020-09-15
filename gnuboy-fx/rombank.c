@@ -1,13 +1,13 @@
 #include "hw.h"
 //#include "esp_spi_flash.h"
 //#include "esp_partition.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <gint/std/string.h>
+#include <gint/std/stdio.h>
+#include <gint/std/stdlib.h>
 //#include "appfs.h"
 #include "rombank.h"
 #include "file.h"
-#include <bfile.h>
+#include <gint/bfile.h>
 
 #define NO_MAPS 64
 

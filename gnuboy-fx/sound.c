@@ -1,7 +1,7 @@
 #include "defs.h"
 #include "pcm.h"
-#include <string.h>
-#include <stdio.h>
+#include <gint/std/string.h>
+#include <gint/std/stdio.h>
 #include "lcd.h"
 
 struct pcm pcm;
