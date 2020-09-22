@@ -298,6 +298,7 @@ void menu_saves()
 						break;
 					}
 					BFile_Close(fd);
+					config_update_loaded(); // Config gets reloaded so save it beforehand
 					startEmuHook(); // To set the dirty flag on all the things so it clears all the caches
 				}
 				break;
